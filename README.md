@@ -14,6 +14,7 @@
 ### Frontend
 
 - `shadcn/ui`
+- `lucide-react`
 
 ### Backend
 
