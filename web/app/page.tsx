@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { generateSpeech } from '@/services/ttsService';
 import { playAudio, type PlaybackResult } from '@/services/audioPlayer';
 import { Volume2, Trash2 } from 'lucide-react';
+import { useSyncExternalStore } from 'react';
 
 type SentenceItem = {
   id: string;
@@ -13,15 +14,47 @@ type SentenceItem = {
   zh: string;
 };
 
+const SENTENCES_STORAGE_KEY = 'listen-loop-sentences';
+
+// Hook to detect whether the component has hydrated on the client
+function useIsHydrated() {
+  return useSyncExternalStore(
+    () => () => {}, // No subscription needed
+    () => true, // Client snapshot (after hydration)
+    () => false // Server snapshot and initial client render
+  );
+}
+
 export default function HomePage() {
+  const isHydrated = useIsHydrated();
+
   const [enSentence, setEnSentence] = useState('');
   const [zhTranslation, setZhTranslation] = useState('');
-  const [sentences, setSentences] = useState<SentenceItem[]>([]);
+  const [sentences, setSentences] = useState<SentenceItem[]>(() => {
+    if (typeof window === 'undefined') return []; // Guard against SSR, as localStorage is not available on the server
+
+    // Load sentences from localStorage on mount
+    const stored = localStorage.getItem(SENTENCES_STORAGE_KEY);
+
+    if (!stored) return [];
+
+    try {
+      return JSON.parse(stored) as SentenceItem[];
+    } catch {
+      localStorage.removeItem(SENTENCES_STORAGE_KEY);
+      return [];
+    }
+  });
   const [playingSentenceId, setPlayingSentenceId] = useState<string | null>(
     null
   );
   const [isPlayingAll, setIsPlayingAll] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Save sentences to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem(SENTENCES_STORAGE_KEY, JSON.stringify(sentences));
+  }, [sentences]);
 
   function handleAddSentence() {
     const newSentence: SentenceItem = {
@@ -170,15 +203,18 @@ export default function HomePage() {
               className="cursor-pointer"
               onClick={handlePlayAll}
               disabled={
+                !isHydrated || // Prevent mismatch before hydration
                 sentences.length === 0 ||
                 isPlayingAll ||
                 playingSentenceId !== null
               }
             >
-              {isPlayingAll ? 'Playing...' : 'Play all'}
+              {isPlayingAll || playingSentenceId !== null
+                ? 'Playing...'
+                : 'Play all'}
             </Button>
           </div>
-          {sentences.length === 0 ? (
+          {sentences.length === 0 || !isHydrated ? (
             <p className="mt-1 text-sm text-muted-foreground">
               No sentences yet.
             </p>
@@ -204,28 +240,6 @@ export default function HomePage() {
                         }
                       />
                     </Button>
-                    {/* <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
-                        <span className="w-6 shrink-0 leading-5 text-sm text-muted-foreground">
-                          {index + 1}.
-                        </span>
-                        <span className="font-medium leading-5">
-                          {sentence.en}
-                        </span>
-                        <span className="text-sm text-muted-foreground leading-5">
-                          {sentence.zh}
-                        </span>
-                      </div>
-                    </div> */}
-                    {/* <div className="min-w-0 flex-1 leading-5">
-                      <span className="mr-3 text-sm text-muted-foreground">
-                        {index + 1}.
-                      </span>
-                      <span className="font-medium">{sentence.en}</span>
-                      <span className="ml-3 text-sm text-muted-foreground">
-                        {sentence.zh}
-                      </span>
-                    </div> */}
                     <div className="min-w-0 flex-1">
                       <div className="grid grid-cols-[2rem_1fr] gap-x-2 leading-5">
                         <span className="text-sm text-muted-foreground">
