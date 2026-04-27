@@ -48,7 +48,8 @@ export function SentenceList({
   }
 
   return (
-    <section className="rounded-lg border p4">
+    <section className="p4">
+      {/* <section className="rounded-lg border p4"> */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Sentences</h2>
         {/* play all button */}

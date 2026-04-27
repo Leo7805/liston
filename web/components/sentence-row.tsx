@@ -38,11 +38,36 @@ export function SentenceRow({
         </Button>
         <div className="min-w-0 flex-1">
           <div className="grid grid-cols-[2rem_1fr] gap-x-2 leading-5">
-            <span className="text-sm text-muted-foreground">{index + 1}.</span>
+            {/* <span className="text-sm text-muted-foreground">{index + 1}.</span> */}
+            <span
+              className={
+                isPlaying
+                  ? 'text-sm text-emerald-500'
+                  : 'text-sm text-muted-foreground'
+              }
+            >
+              {index + 1}.
+            </span>
 
             <p className="min-w-0">
-              <span className="font-medium">{sentence.en}</span>
-              <span className="ml-3 text-sm text-muted-foreground">
+              {/* <span className="font-medium">{sentence.en}</span> */}
+              <span
+                className={
+                  isPlaying ? 'font-medium text-emerald-500' : 'font-medium'
+                }
+              >
+                {sentence.en}
+              </span>
+              {/* <span className="ml-3 text-sm text-muted-foreground">
+                {sentence.zh}
+              </span> */}
+              <span
+                className={
+                  isPlaying
+                    ? 'ml-3 text-sm text-emerald-500'
+                    : 'ml-3 text-sm text-muted-foreground'
+                }
+              >
                 {sentence.zh}
               </span>
             </p>
