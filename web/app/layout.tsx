@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Listen Loop',
+  title: 'Liston',
   description: 'AI-assisted English listening trainer.',
 };
 

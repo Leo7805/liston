@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { SentenceItem } from '@/types/senteces';
+import { useState, useEffect, useRef } from 'react';
 import { generateSpeech } from '@/services/ttsService';
 import {
   pauseAudio,
@@ -10,6 +9,8 @@ import {
   stopAudio,
   type PlaybackResult,
 } from '@/services/audioPlayer';
+import { SentenceItem, PlaybackMode } from '@/types/senteces';
+import { createPlaybackQueue } from '@/services/playbackScheduler';
 
 async function playSentenceAudio(
   sentence: SentenceItem
@@ -39,13 +40,27 @@ async function playSentenceAudio(
   return 'ended';
 }
 
-export function useSentencePlayback(sentences: SentenceItem[]) {
+export function useSentencePlayback(
+  sentences: SentenceItem[],
+  playbackMode: PlaybackMode = 'sequential',
+  loopPlayback: boolean = false
+) {
   const [playingSentenceId, setPlayingSentenceId] = useState<string | null>(
     null
   );
   const [isPlayingAll, setIsPlayingAll] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const playbackModeRef = useRef(playbackMode);
+  const loopPlaybackRef = useRef(loopPlayback);
+
+  useEffect(() => {
+    playbackModeRef.current = playbackMode;
+  }, [playbackMode]);
+
+  useEffect(() => {
+    loopPlaybackRef.current = loopPlayback;
+  }, [loopPlayback]);
 
   async function playSentence(sentence: SentenceItem) {
     if (playingSentenceId === sentence.id) return;
@@ -79,15 +94,29 @@ export function useSentencePlayback(sentences: SentenceItem[]) {
     setIsPlayingAll(true);
 
     try {
-      for (const sentence of sentences) {
-        if (!sentence.en.trim() && !sentence.zh.trim()) {
-          continue; // skip sentences with both English and Chinese empty
-        }
-        setPlayingSentenceId(sentence.id);
-        const result = await playSentenceAudio(sentence);
+      let shouldContinue = true; // flag to control loop playback
 
-        if (result !== 'ended') {
-          break;
+      while (shouldContinue) {
+        const playbackQueue = createPlaybackQueue(
+          sentences,
+          playbackModeRef.current
+        );
+
+        for (const sentence of playbackQueue) {
+          if (!sentence.en.trim() && !sentence.zh.trim()) {
+            continue; // skip sentences with both English and Chinese empty
+          }
+          setPlayingSentenceId(sentence.id);
+          const result = await playSentenceAudio(sentence);
+
+          if (result !== 'ended') {
+            shouldContinue = false;
+            break;
+          }
+        }
+
+        if (!loopPlaybackRef.current) {
+          shouldContinue = false;
         }
       }
     } catch (error) {
