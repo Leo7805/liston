@@ -1,5 +1,7 @@
 'use client';
 
+// Manages sentence playback state, playback settings, and playback actions.
+
 import { useState, useEffect, useRef } from 'react';
 import { generateSpeech } from '@/services/ttsService';
 import {
@@ -9,9 +11,14 @@ import {
   stopAudio,
   type PlaybackResult,
 } from '@/services/audioPlayer';
-import { SentenceItem, PlaybackMode } from '@/types/senteces';
+import type { SentenceItem, PlaybackMode } from '@/types/sentences';
 import { createPlaybackQueue } from '@/services/playbackScheduler';
 
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
+// Plays English audio first, then Chinese audio.
 async function playSentenceAudio(
   sentence: SentenceItem
 ): Promise<PlaybackResult> {
@@ -40,17 +47,21 @@ async function playSentenceAudio(
   return 'ended';
 }
 
-export function useSentencePlayback(
-  sentences: SentenceItem[],
-  playbackMode: PlaybackMode = 'sequential',
-  loopPlayback: boolean = false
-) {
+// Main hook to manage sentence playback
+export function useSentencePlayback(sentences: SentenceItem[]) {
+  // Playback settings
+  const [playbackMode, setPlaybackMode] = useState<PlaybackMode>('sequential');
+  const [loopPlayback, setLoopPlayback] = useState(false);
+
+  // Playback runtime state
   const [playingSentenceId, setPlayingSentenceId] = useState<string | null>(
     null
   );
   const [isPlayingAll, setIsPlayingAll] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Keep the latest settings available inside the async playAll loop.
   const playbackModeRef = useRef(playbackMode);
   const loopPlaybackRef = useRef(loopPlayback);
 
@@ -62,6 +73,7 @@ export function useSentencePlayback(
     loopPlaybackRef.current = loopPlayback;
   }, [loopPlayback]);
 
+  // Single sentence playback
   async function playSentence(sentence: SentenceItem) {
     if (playingSentenceId === sentence.id) return;
     if (isPlayingAll || isPaused) return;
@@ -73,9 +85,7 @@ export function useSentencePlayback(
     try {
       await playSentenceAudio(sentence);
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Failed to play audio.'
-      );
+      setErrorMessage(getErrorMessage(error, 'Failed to play audio.'));
     } finally {
       setPlayingSentenceId((currentId) =>
         currentId === sentence.id ? null : currentId
@@ -84,6 +94,7 @@ export function useSentencePlayback(
     }
   }
 
+  // Full list playback
   async function playAll() {
     if (isPlayingAll) return;
     if (playingSentenceId !== null) return;
@@ -94,7 +105,7 @@ export function useSentencePlayback(
     setIsPlayingAll(true);
 
     try {
-      let shouldContinue = true; // flag to control loop playback
+      let shouldContinue = true;
 
       while (shouldContinue) {
         const playbackQueue = createPlaybackQueue(
@@ -104,7 +115,7 @@ export function useSentencePlayback(
 
         for (const sentence of playbackQueue) {
           if (!sentence.en.trim() && !sentence.zh.trim()) {
-            continue; // skip sentences with both English and Chinese empty
+            continue; // skip empty sentences
           }
           setPlayingSentenceId(sentence.id);
           const result = await playSentenceAudio(sentence);
@@ -120,9 +131,7 @@ export function useSentencePlayback(
         }
       }
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Failed to play audio.'
-      );
+      setErrorMessage(getErrorMessage(error, 'Failed to play audio.'));
     } finally {
       setPlayingSentenceId(null);
       setIsPlayingAll(false);
@@ -130,6 +139,7 @@ export function useSentencePlayback(
     }
   }
 
+  // Playback controls
   function stopPlayback() {
     stopAudio();
     setPlayingSentenceId(null);
@@ -147,9 +157,7 @@ export function useSentencePlayback(
       await resumeAudio();
       setIsPaused(false);
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Failed to resume audio.'
-      );
+      setErrorMessage(getErrorMessage(error, 'Failed to resume audio.'));
     }
   }
 
@@ -162,14 +170,27 @@ export function useSentencePlayback(
     pausePlayback();
   }
 
+  // Public API for the components
   return {
-    playingSentenceId,
-    isPlayingAll,
-    isPaused,
-    errorMessage,
-    playSentence,
-    playAll,
-    stopPlayback,
-    togglePausePlayback,
+    settings: {
+      playbackMode,
+      loopPlayback,
+      setPlaybackMode,
+      setLoopPlayback,
+    },
+    status: {
+      playingSentenceId,
+      isPlayingAll,
+      isPaused,
+      errorMessage,
+    },
+    actions: {
+      playSentence,
+      playAll,
+      stopPlayback,
+      togglePausePlayback,
+    },
   };
 }
+
+export type SentencePlayback = ReturnType<typeof useSentencePlayback>;

@@ -1,4 +1,4 @@
-import type { PlaybackMode, SentenceItem } from '@/types/senteces';
+import type { PlaybackMode, SentenceItem } from '@/types/sentences';
 
 function getPlayCount(sentence: SentenceItem): number {
   return sentence.playCount ?? 0;
@@ -8,7 +8,7 @@ function sortByLeastPlayed(sentences: SentenceItem[]): SentenceItem[] {
   return [...sentences].sort((a, b) => getPlayCount(a) - getPlayCount(b));
 }
 
-// 1. Shuffle mode (random order each time)
+// Returns a random playback order.
 function shuffleSentences(sentences: SentenceItem[]): SentenceItem[] {
   const shuffled = [...sentences];
 
@@ -24,12 +24,16 @@ function shuffleSentences(sentences: SentenceItem[]): SentenceItem[] {
   return shuffled;
 }
 
-// 2. Balanced mode (default order, no shuffling)
+// Prioritizes less-played sentences while keeping some variety.
 function createBalancedQueue(sentences: SentenceItem[]): SentenceItem[] {
+  if (sentences.length === 0) {
+    return [];
+  }
+
   const sorted = sortByLeastPlayed(sentences);
   const lowestPlayCount = getPlayCount(sorted[0]);
 
-  // least played first, but with randomness among sentences with similar play counts to avoid always playing the same "least played" sentence first
+  // Randomize near-lowest candidates so balanced mode does not always start the same way.
   const candidates = sorted.filter(
     (sentence) => getPlayCount(sentence) <= lowestPlayCount + 1
   );
@@ -41,6 +45,7 @@ function createBalancedQueue(sentences: SentenceItem[]): SentenceItem[] {
   return [...shuffleSentences(candidates), ...rest];
 }
 
+// Creates the playback queue based on the selected mode.
 export function createPlaybackQueue(
   sentences: SentenceItem[],
   mode: PlaybackMode
@@ -49,18 +54,15 @@ export function createPlaybackQueue(
     (sentence) => sentence.en.trim() || sentence.zh.trim()
   );
 
-  if (mode === 'shuffle') {
-    return shuffleSentences(playableSentences);
+  switch (mode) {
+    case 'shuffle':
+      return shuffleSentences(playableSentences);
+    case 'least_played':
+      return sortByLeastPlayed(playableSentences);
+    case 'balanced':
+      return createBalancedQueue(playableSentences);
+    case 'sequential':
+    default:
+      return playableSentences;
   }
-
-  if (mode === 'least_played') {
-    return sortByLeastPlayed(playableSentences);
-  }
-
-  if (mode === 'balanced') {
-    return createBalancedQueue(playableSentences);
-  }
-
-  // default to sequential
-  return playableSentences;
 }
