@@ -1,50 +1,31 @@
 'use client';
 
-// Manages sentence playback state, playback settings, and playback actions.
+// Manages playback UI state, settings, and user actions.
 
 import { useState, useEffect, useRef } from 'react';
-import { generateSpeech } from '@/services/ttsService';
-import {
-  pauseAudio,
-  playAudio,
-  resumeAudio,
-  stopAudio,
-  type PlaybackResult,
-} from '@/services/audioPlayer';
+import { pauseAudio, resumeAudio, stopAudio } from '@/services/audioPlayer';
 import type { SentenceItem, PlaybackMode } from '@/types/sentences';
-import { createPlaybackQueue } from '@/services/playbackScheduler';
+import {
+  createPlaybackFlowController,
+  type PlaybackFlowController,
+} from '@/services/playbackFlowController';
+import {
+  runPlaybackSession,
+  type PlaybackPartOrder,
+} from '@/services/playbackSession';
+
+// Type for managing a playback session's flow and abort control
+type PlaybackSessionControl = {
+  flowController: PlaybackFlowController;
+  abortController: AbortController;
+};
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
 
-// Plays English audio first, then Chinese audio.
-async function playSentenceAudio(
-  sentence: SentenceItem
-): Promise<PlaybackResult> {
-  if (!sentence.en.trim() && !sentence.zh.trim()) {
-    throw new Error(
-      'Both English sentence and Chinese translation cannot be empty.'
-    );
-  }
-
-  if (sentence.en.trim()) {
-    const enBlob = await generateSpeech(sentence.en, 'en');
-    const enResult = await playAudio(enBlob);
-    if (enResult !== 'ended') {
-      return enResult;
-    }
-  }
-
-  if (sentence.zh.trim()) {
-    const zhBlob = await generateSpeech(sentence.zh, 'zh');
-    const zhResult = await playAudio(zhBlob);
-    if (zhResult !== 'ended') {
-      return zhResult;
-    }
-  }
-
-  return 'ended';
+function isAbortError(error: unknown) {
+  return error instanceof Error && error.name === 'AbortError';
 }
 
 // Main hook to manage sentence playback
@@ -52,6 +33,8 @@ export function useSentencePlayback(sentences: SentenceItem[]) {
   // Playback settings
   const [playbackMode, setPlaybackMode] = useState<PlaybackMode>('sequential');
   const [loopPlayback, setLoopPlayback] = useState(false);
+  const [partOrder, setPartOrder] =
+    useState<PlaybackPartOrder>('original_first');
 
   // Playback runtime state
   const [playingSentenceId, setPlayingSentenceId] = useState<string | null>(
@@ -61,9 +44,11 @@ export function useSentencePlayback(sentences: SentenceItem[]) {
   const [isPaused, setIsPaused] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Keep the latest settings available inside the async playAll loop.
+  // Refs used by async playback flows.
   const playbackModeRef = useRef(playbackMode);
   const loopPlaybackRef = useRef(loopPlayback);
+  const partOrderRef = useRef(partOrder);
+  const sessionControlRef = useRef<PlaybackSessionControl | null>(null);
 
   useEffect(() => {
     playbackModeRef.current = playbackMode;
@@ -73,87 +58,139 @@ export function useSentencePlayback(sentences: SentenceItem[]) {
     loopPlaybackRef.current = loopPlayback;
   }, [loopPlayback]);
 
-  // Single sentence playback
+  useEffect(() => {
+    partOrderRef.current = partOrder;
+  }, [partOrder]);
+
+  // Playback session control lifecycle
+  function startSessionControl(): PlaybackSessionControl {
+    const flowController = createPlaybackFlowController();
+    const abortController = new AbortController();
+    const sessionControl = { flowController, abortController };
+    sessionControlRef.current = sessionControl;
+    return sessionControl;
+  }
+
+  function clearSessionControl(sessionControl: PlaybackSessionControl) {
+    if (sessionControlRef.current === sessionControl) {
+      sessionControlRef.current = null;
+    }
+  }
+
+  function stopCurrentSession() {
+    const sessionControl = sessionControlRef.current;
+    if (sessionControl) {
+      sessionControl.flowController.stop();
+      sessionControl.abortController.abort();
+    }
+    stopAudio();
+  }
+
+  function handlePlaybackError(error: unknown) {
+    if (isAbortError(error)) return;
+    setErrorMessage(getErrorMessage(error, 'Failed to play audio.'));
+  }
+
+  // Playback actions
   async function playSentence(sentence: SentenceItem) {
-    if (playingSentenceId === sentence.id) return;
-    if (isPlayingAll || isPaused) return;
+    if (playingSentenceId === sentence.id) return; // Already playing this sentence
+    if (isPlayingAll || isPaused) return; // Defensive check - playSentence mode should be disabled in these states
+
+    const sessionControl = startSessionControl();
 
     setIsPaused(false);
     setErrorMessage(null);
     setPlayingSentenceId(sentence.id);
 
     try {
-      await playSentenceAudio(sentence);
+      await runPlaybackSession({
+        sentences: [sentence],
+        getPlaybackMode: () => playbackModeRef.current,
+        getLoopPlayback: () => loopPlaybackRef.current,
+        getPartOrder: () => partOrderRef.current,
+        flowController: sessionControl.flowController,
+        onPlayingSentenceIdChange: setPlayingSentenceId,
+        abortSignal: sessionControl.abortController.signal,
+      });
     } catch (error) {
-      setErrorMessage(getErrorMessage(error, 'Failed to play audio.'));
+      handlePlaybackError(error);
     } finally {
-      setPlayingSentenceId((currentId) =>
-        currentId === sentence.id ? null : currentId
-      );
-      setIsPaused(false);
+      if (sessionControlRef.current === sessionControl) {
+        setPlayingSentenceId((currentId) =>
+          currentId === sentence.id ? null : currentId
+        );
+        setIsPaused(false);
+      }
+
+      clearSessionControl(sessionControl);
     }
   }
 
-  // Full list playback
-  async function playAll() {
-    if (isPlayingAll) return;
-    if (playingSentenceId !== null) return;
-    if (sentences.length === 0) return;
+  async function startPlaybackSession(startSentenceId?: string) {
+    const sessionControl = startSessionControl();
 
     setIsPaused(false);
     setErrorMessage(null);
     setIsPlayingAll(true);
 
     try {
-      let shouldContinue = true;
-
-      while (shouldContinue) {
-        const playbackQueue = createPlaybackQueue(
-          sentences,
-          playbackModeRef.current
-        );
-
-        for (const sentence of playbackQueue) {
-          if (!sentence.en.trim() && !sentence.zh.trim()) {
-            continue; // skip empty sentences
-          }
-          setPlayingSentenceId(sentence.id);
-          const result = await playSentenceAudio(sentence);
-
-          if (result !== 'ended') {
-            shouldContinue = false;
-            break;
-          }
-        }
-
-        if (!loopPlaybackRef.current) {
-          shouldContinue = false;
-        }
-      }
+      await runPlaybackSession({
+        sentences,
+        getPlaybackMode: () => playbackModeRef.current,
+        getLoopPlayback: () => loopPlaybackRef.current,
+        getPartOrder: () => partOrderRef.current,
+        flowController: sessionControl.flowController,
+        startSentenceId,
+        onPlayingSentenceIdChange: setPlayingSentenceId,
+        abortSignal: sessionControl.abortController.signal,
+      });
     } catch (error) {
-      setErrorMessage(getErrorMessage(error, 'Failed to play audio.'));
+      handlePlaybackError(error);
     } finally {
-      setPlayingSentenceId(null);
-      setIsPlayingAll(false);
-      setIsPaused(false);
+      if (sessionControlRef.current === sessionControl) {
+        setPlayingSentenceId(null);
+        setIsPaused(false);
+        setIsPlayingAll(false);
+      }
+      clearSessionControl(sessionControl);
     }
   }
 
-  // Playback controls
+  async function playAll() {
+    if (isPlayingAll) return;
+    if (playingSentenceId != null) return;
+    if (sentences.length === 0) return;
+
+    await startPlaybackSession();
+  }
+
+  // Restart the active queue session from a specific sentence.
+  async function playFromSentence(sentenceId: string) {
+    if (sentences.length === 0) return;
+    if (!isPlayingAll) return;
+
+    stopCurrentSession();
+
+    await startPlaybackSession(sentenceId);
+  }
+
+  // Control actions
   function stopPlayback() {
-    stopAudio();
+    stopCurrentSession();
     setPlayingSentenceId(null);
     setIsPlayingAll(false);
     setIsPaused(false);
   }
 
   function pausePlayback() {
+    sessionControlRef.current?.flowController.pause();
     pauseAudio();
     setIsPaused(true);
   }
 
   async function resumePlayback() {
     try {
+      sessionControlRef.current?.flowController.resume();
       await resumeAudio();
       setIsPaused(false);
     } catch (error) {
@@ -170,13 +207,15 @@ export function useSentencePlayback(sentences: SentenceItem[]) {
     pausePlayback();
   }
 
-  // Public API for the components
+  // Public API for components
   return {
     settings: {
       playbackMode,
       loopPlayback,
+      partOrder,
       setPlaybackMode,
       setLoopPlayback,
+      setPartOrder,
     },
     status: {
       playingSentenceId,
@@ -186,6 +225,7 @@ export function useSentencePlayback(sentences: SentenceItem[]) {
     },
     actions: {
       playSentence,
+      playFromSentence,
       playAll,
       stopPlayback,
       togglePausePlayback,

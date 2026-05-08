@@ -2,6 +2,7 @@
 
 // Renders the sentence section with playback controls and sentence rows.
 
+import type { SentenceItem } from '@/types/sentences';
 import { PlaybackControls } from './playback-controls';
 import { SentenceRow } from './sentence-row';
 import type { SentencePlayback } from '@/hook/useSentencePlayback';
@@ -20,7 +21,11 @@ export function SentenceList({
 }: SentenceListProps) {
   const { sentences, deleteSentence } = sentenceStore;
   const hasSentences = sentences.length > 0;
-  const shouldShowEmptyState = isHydrated || !hasSentences;
+  const shouldShowEmptyState = !isHydrated || !hasSentences;
+
+  const playSentence: (s: SentenceItem) => void = playback.status.isPlayingAll
+    ? (sentence) => playback.actions.playFromSentence(sentence.id)
+    : playback.actions.playSentence;
 
   return (
     <section className="p4">
@@ -48,7 +53,7 @@ export function SentenceList({
                 index={index}
                 isPlaying={playback.status.playingSentenceId === sentence.id}
                 isPlayingAll={playback.status.isPlayingAll}
-                onPlaySentence={playback.actions.playSentence}
+                onPlaySentence={playSentence}
                 onDeleteSentence={deleteSentence}
               />
             ))}

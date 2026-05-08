@@ -1,16 +1,18 @@
 import { config } from '@/lib/config';
+import { LanguageCode, type LanguageCodeType } from '@/types/languages';
 
-export type TtsLang = 'en' | 'zh';
+export function getVoiceName(lang: LanguageCodeType): string {
+  return lang === LanguageCode.English ? config.voices.en : config.voices.zh;
+}
 
 export async function generateSpeech(
+  voiceName: string,
   text: string,
-  lang: TtsLang
+  signal?: AbortSignal
 ): Promise<Blob> {
   if (!text.trim()) {
     throw new Error('Text cannot be empty.');
   }
-
-  const voiceName = lang === 'en' ? config.voices.en : config.voices.zh;
 
   const res = await fetch(`${config.apiBaseUrl}/tts`, {
     method: 'POST',
@@ -18,22 +20,9 @@ export async function generateSpeech(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ text, voiceName }),
+    signal,
   });
 
-  // if (!res.ok) {
-  //   let detail = 'Failed to generate speech';
-
-  //   // Defensive parsing: res.json() may fail if response is not JSON, so fallback to res.text()
-  //   try {
-  //     const errorData = await res.json();
-  //     detail = errorData.detail || errorData.message || detail;
-  //   } catch {
-  //     detail = await res.text();
-  //   }
-
-  //   throw new Error(detail);
-  // }
-  // Fix: Failed to execute 'text' on 'Response': body stream already read
   if (!res.ok) {
     let detail = `Failed to generate speech. (${res.status})`;
 

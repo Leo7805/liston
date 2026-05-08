@@ -1,20 +1,33 @@
-export type PlaybackResult = 'ended' | 'stopped';
-export type PlaybackState =
-  | 'idle'
-  | 'loading'
-  | 'playing'
-  | 'paused'
-  | 'stopped'
-  | 'ended'
-  | 'error';
+// Manages single audio playback
+
+export const AudioPlaybackResult = {
+  Ended: 'ended',
+  Stopped: 'stopped',
+} as const;
+
+export type AudioPlaybackResultType =
+  (typeof AudioPlaybackResult)[keyof typeof AudioPlaybackResult];
+
+export const AudioPlaybackState = {
+  Idle: 'idle',
+  Loading: 'loading',
+  Playing: 'playing',
+  Paused: 'paused',
+  Stopped: 'stopped',
+  Ended: 'ended',
+  Error: 'error',
+} as const;
+
+export type AudioPlaybackStateType =
+  (typeof AudioPlaybackState)[keyof typeof AudioPlaybackState];
 
 let currentAudio: HTMLAudioElement | null = null;
 let currentAudioUrl: string | null = null;
-let resolveCurrent: ((result: PlaybackResult) => void) | null = null;
+let resolveCurrent: ((result: AudioPlaybackResultType) => void) | null = null;
 let currentPlaybackId = 0;
-let playbackState: PlaybackState = 'idle';
+let playbackState: AudioPlaybackStateType = AudioPlaybackState.Idle;
 
-export function getPlaybackState(): PlaybackState {
+export function getPlaybackState(): AudioPlaybackStateType {
   return playbackState;
 }
 
@@ -22,7 +35,7 @@ export function stopAudio(): void {
   const hasActivePlayback = currentAudio || currentAudioUrl || resolveCurrent;
   if (!hasActivePlayback) return;
 
-  playbackState = 'stopped';
+  playbackState = AudioPlaybackState.Stopped;
 
   if (currentAudio) {
     currentAudio.pause();
@@ -35,38 +48,38 @@ export function stopAudio(): void {
     currentAudioUrl = null;
   }
 
-  resolveCurrent?.('stopped');
+  resolveCurrent?.(AudioPlaybackResult.Stopped);
   resolveCurrent = null;
 }
 
 export function pauseAudio(): void {
-  if (!currentAudio || playbackState !== 'playing') return;
+  if (!currentAudio || playbackState !== AudioPlaybackState.Playing) return;
 
   currentAudio.pause();
-  playbackState = 'paused';
+  playbackState = AudioPlaybackState.Paused;
 }
 
 export async function resumeAudio(): Promise<void> {
-  if (!currentAudio || playbackState !== 'paused') return;
+  if (!currentAudio || playbackState !== AudioPlaybackState.Paused) return;
 
   try {
     await currentAudio.play();
-    playbackState = 'playing';
+    playbackState = AudioPlaybackState.Playing;
   } catch {
     stopAudio();
-    playbackState = 'error';
+    playbackState = AudioPlaybackState.Error;
     throw new Error('Failed to resume audio playback.');
   }
 }
 
-export async function playAudio(blob: Blob): Promise<PlaybackResult> {
+export async function playAudio(blob: Blob): Promise<AudioPlaybackResultType> {
   if (blob.size === 0) {
-    playbackState = 'error';
+    playbackState = AudioPlaybackState.Error;
     throw new Error('Audio blob is empty.');
   }
 
   stopAudio(); // Stop any existing audio before playing new one
-  playbackState = 'loading';
+  playbackState = AudioPlaybackState.Loading;
 
   const audioUrl = URL.createObjectURL(blob);
   const audio = new Audio(audioUrl);
@@ -76,28 +89,30 @@ export async function playAudio(blob: Blob): Promise<PlaybackResult> {
   currentAudioUrl = audioUrl;
 
   // Create a promise that resolves when playback ends or is stopped
-  const playbackFinished = new Promise<PlaybackResult>((resolve, reject) => {
-    resolveCurrent = resolve;
+  const playbackFinished = new Promise<AudioPlaybackResultType>(
+    (resolve, reject) => {
+      resolveCurrent = resolve;
 
-    audio.onended = () => {
-      playbackState = 'ended';
-      cleanup(audio, audioUrl, playbackId);
-      resolve('ended');
-    };
+      audio.onended = () => {
+        playbackState = AudioPlaybackState.Ended;
+        cleanup(audio, audioUrl, playbackId);
+        resolve(AudioPlaybackResult.Ended);
+      };
 
-    audio.onerror = () => {
-      playbackState = 'error';
-      cleanup(audio, audioUrl, playbackId);
-      reject(new Error('Audio playback failed.'));
-    };
-  });
+      audio.onerror = () => {
+        playbackState = AudioPlaybackState.Error;
+        cleanup(audio, audioUrl, playbackId);
+        reject(new Error('Audio playback failed.'));
+      };
+    }
+  );
 
   try {
     await audio.play();
-    playbackState = 'playing';
+    playbackState = AudioPlaybackState.Playing;
   } catch {
     cleanup(audio, audioUrl, playbackId);
-    playbackState = 'error';
+    playbackState = AudioPlaybackState.Error;
     throw new Error('Audio playback was blocked or failed.');
   }
 
