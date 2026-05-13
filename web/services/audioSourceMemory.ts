@@ -1,33 +1,10 @@
-import type { LanguageCodeType } from '@/types/languages';
-
 // Simple in-memory LRU cache for generated audio blobs.
 
-const MAX_AUDIO_CACHE_SIZE = 100; // Max number of entries in cache
+const MAX_AUDIO_CACHE_SIZE = 200; // Max number of entries in memory cache
 const audioCache = new Map<string, Blob>();
 
-type AudioCacheKeyInput = {
-  lang: LanguageCodeType;
-  voiceName: string;
-  text: string;
-};
-
 /**
- * Creates a unique cache key for an audio blob.
- * @param lang - The language code (e.g., 'en', 'zh')
- * @param voiceName - The name of the voice to be used for TTS (e.g., 'en-US-Wavenet-D')
- * @param text - The text to be synthesized
- * @returns A unique cache key in the format "lang:voiceName:text"
- */
-export function createAudioCacheKey({
-  lang,
-  voiceName,
-  text,
-}: AudioCacheKeyInput): string {
-  return `${lang}:${voiceName}:${text.trim()}`;
-}
-
-/**
- * Retrieves a cached audio blob and updates its LRU position.
+ * Retrieves a cached audio blob and updates its LRU position in memory.
  *
  * When an audio is found, it's moved to the end (most recently used).
  * If not found, returns undefined.
@@ -35,7 +12,7 @@ export function createAudioCacheKey({
  * @param key - The cache key created by createAudioCacheKey()
  * @returns The cached Blob, or undefined if not found
  */
-export function getCachedAudio(key: string): Blob | undefined {
+export function getSpeechFromMemory(key: string): Blob | undefined {
   const audio = audioCache.get(key);
 
   if (!audio) return undefined;
@@ -47,17 +24,17 @@ export function getCachedAudio(key: string): Blob | undefined {
 }
 
 /**
- * Stores an audio blob in the cache.
+ * Stores an audio blob in the memory cache.
  *
- * If the cache exceeds MAX_AUDIO_CACHE_SIZE (100 entries), the oldest entries
+ * If the cache exceeds MAX_AUDIO_CACHE_SIZE (200 entries), the oldest entries
  * are automatically removed until size is within limit.
  *
  * @param key - The cache key created by createAudioCacheKey()
  * @param audioBlob - The audio Blob to cache
  */
-export function setCachedAudio(key: string, audioBlob: Blob): void {
+export function setSpeechToMemory(key: string, audioBlob: Blob): void {
   audioCache.set(key, audioBlob);
-  trimAudioCache();
+  trimSpeechCache();
 }
 
 /**
@@ -66,7 +43,7 @@ export function setCachedAudio(key: string, audioBlob: Blob): void {
  * Use this when reloading sentences, switching languages, or freeing memory.
  * This is a destructive operation and cannot be undone.
  */
-export function clearAudioCache(): void {
+export function clearSpeechMemory(): void {
   audioCache.clear();
 }
 
@@ -78,7 +55,7 @@ export function clearAudioCache(): void {
  *
  * @returns The number of cached audio entries
  */
-export function getAudioCacheSize(): number {
+export function getSpeechMemorySize(): number {
   return audioCache.size;
 }
 
@@ -89,23 +66,23 @@ export function getAudioCacheSize(): number {
  *
  * @param key - The cache key to delete
  */
-export function deleteCachedAudio(key: string): void {
+export function deleteSpeechFromMemory(key: string): void {
   audioCache.delete(key);
 }
 
 /**
  * Trims the audio cache to MAX_AUDIO_CACHE_SIZE by removing oldest entries.
  *
- * Called automatically after each setCachedAudio() call.
+ * Called automatically after each setSpeechAudioToMemory() call.
  * Uses FIFO (First-In-First-Out) deletion: removes the oldest entry first.
- * Entries are re-ordered when accessed via getCachedAudio() (LRU behavior).
+ * Entries are re-ordered when accessed via getSpeechAudioFromMemory() (LRU behavior).
  *
  * The safety check for !oldestKey should theoretically never happen,
  * but is kept as a defensive measure.
  *
  * @internal This is a private function, not exported.
  */
-function trimAudioCache(): void {
+function trimSpeechCache(): void {
   while (audioCache.size > MAX_AUDIO_CACHE_SIZE) {
     // Remove the oldest entry (first inserted)
     const oldestKey = audioCache.keys().next().value;

@@ -12,7 +12,7 @@ import {
 import { LanguageCode, type LanguageCodeType } from '@/types/languages';
 import type { PlaybackMode, SentenceItem } from '@/types/sentences';
 import { createPlaybackQueue } from '@/services/playbackScheduler';
-import { getSpeechAudio } from '@/services/speechAudioService';
+import { getSpeechAudio } from '@/services/audioSource';
 
 export type PlaybackPartRole = 'original' | 'translation';
 

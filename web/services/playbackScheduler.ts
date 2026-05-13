@@ -1,5 +1,8 @@
 import type { PlaybackMode, SentenceItem } from '@/types/sentences';
 
+// Playback queue planner: filters playable sentences and orders them for the selected mode.
+// Actual audio playback, pause/resume, and session state are handled by playbackSession/audioPlayer.
+
 function getPlayCount(sentence: SentenceItem): number {
   return sentence.playCount ?? 0;
 }

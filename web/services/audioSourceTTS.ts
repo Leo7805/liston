@@ -1,15 +1,26 @@
 import { config } from '@/lib/config';
 import { LanguageCode, type LanguageCodeType } from '@/types/languages';
 
+// TTS API wrapper: resolves configured voices and returns generated audio as a Blob.
+// Playback state and scheduling are handled by the audio/playback services.
+
+type GenerateSpeechInput = {
+  voiceName: string;
+  text: string;
+  signal?: AbortSignal;
+};
+
+// Maps language codes to configured TTS voice names and calls the TTS API.
 export function getVoiceName(lang: LanguageCodeType): string {
   return lang === LanguageCode.English ? config.voices.en : config.voices.zh;
 }
 
-export async function generateSpeech(
-  voiceName: string,
-  text: string,
-  signal?: AbortSignal
-): Promise<Blob> {
+// Generates speech audio for given text and voice, returning a Blob.
+export async function generateSpeech({
+  voiceName,
+  text,
+  signal,
+}: GenerateSpeechInput): Promise<Blob> {
   if (!text.trim()) {
     throw new Error('Text cannot be empty.');
   }
