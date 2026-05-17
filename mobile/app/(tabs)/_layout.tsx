@@ -1,35 +1,69 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+/** Type for the names of icons available in Ionicons. */
+type TabIconName = keyof typeof Ionicons.glyphMap;
 
+/** Returns the options for a tab, including the title and icon. */
+function tabOptions(title: string, iconName: TabIconName) {
+  return {
+    title,
+    tabBarIcon: ({
+      color,
+      size,
+      focused,
+    }: {
+      color: string;
+      size: number;
+      focused: boolean;
+    }) => (
+      <Ionicons
+        name={focused ? iconName : (`${iconName}-outline` as TabIconName)}
+        size={focused ? 30 : 20}
+        color={color}
+      />
+    ),
+  };
+}
+
+/** Styles for the tab bar, making it transparent and positioning it at the bottom. */
+const tabBarStyle = {
+  backgroundColor: '#34d399',
+  position: 'absolute',
+  borderTopWidth: 0,
+  height: 90,
+  paddingTop: 10,
+} as const;
+
+/** Styles for the tab labels, making them bold and adjusting their position. */
+const tabBarLabelStyle = {
+  fontSize: 12,
+  fontWeight: '600',
+} as const;
+
+/** The layout component for the tab navigator, defining the styles and screens. */
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+        tabBarStyle,
+        tabBarActiveTintColor: '#ffffff',
+        tabBarInactiveTintColor: '#94a3b8',
+        tabBarLabelStyle,
+      }}
+    >
+      <Tabs.Screen name="index" options={tabOptions('Play', 'play-circle')} />
+
       <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
+        name="sentences"
+        options={tabOptions('Sentences', 'document-text')}
       />
       <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
+        name="settings"
+        options={tabOptions('Settings', 'settings')}
       />
+      <Tabs.Screen name="dev" options={tabOptions('dev', 'code-slash')} />
     </Tabs>
   );
 }
