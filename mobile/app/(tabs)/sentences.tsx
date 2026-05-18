@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Modal, FlatList, View, Text, TouchableOpacity } from 'react-native';
+import { FlatList, View, Text, TouchableOpacity } from 'react-native';
 import { SentenceCard } from '@/components/SentenceCard';
 import { mockSentences } from '@/data/mockSentences';
-import { SaveSentenceForm } from '@/components/SaveSentenceForm';
 import {
   addSentenceToStorage,
   updateSentenceInStorage,
@@ -13,6 +12,9 @@ import {
   setInitializedSentences,
 } from '@/services/sentenceStore';
 import { SentenceItem } from '@/types/sentences';
+import { SentenceEditorModal } from '@/components/SentenceEditorModal';
+import { PlaybackState, type PlaybackStateType } from '@/types/player';
+import { MiniPlayer } from '@/components/MiniPlayer';
 
 export default function SentencesScreen() {
   // Sentence list
@@ -21,13 +23,21 @@ export default function SentencesScreen() {
   // Add or Edit form visibility & state
   const [showEditor, setShowEditor] = useState(false);
 
-  // Sentence (item) currently being edited
+  /** Current editing sentence */
   const [editingSentence, setEditingSentence] = useState<SentenceItem | null>(
     null
-  );
+  ); // Sentence (item) currently being edited
+  const [original, setOriginal] = useState(''); // Original sentence of current editing sentence
+  const [translation, setTranslation] = useState('');
+  const [openSwipeId, setOpenSwipeId] = useState<string | null>(null); // ID of currently opened swipeable card/sentence (for edit/delete actions)
 
-  // const [original, setOriginal] = useState('');
-  // const [translation, setTranslation] = useState('');
+  /** Current playing sentence */
+  const [playingSentence, setPlayingSentence] = useState<SentenceItem | null>(
+    null
+  );
+  const [playbackState, setPlaybackState] = useState<PlaybackStateType>(
+    PlaybackState.Idle
+  );
 
   // Load sentences from storageAsync. If none are stored, use mock data.
   useEffect(() => {
@@ -51,24 +61,24 @@ export default function SentencesScreen() {
   }, []);
 
   // Show form for adding a new sentence, or saving an edit to an existing sentence
-  function showAddForm() {
+  function openAddEditor() {
     setEditingSentence(null); // reset editing state
 
-    // setOriginal('');
-    // setTranslation('');
+    setOriginal('');
+    setTranslation('');
 
-    setShowEditor((show) => !show);
+    setShowEditor(true);
   }
 
   // Add/update a new sentence to sentence list & storageASync
-  async function saveSentence(orig: string, trans: string) {
-    if (!orig.trim()) return;
+  async function saveSentence() {
+    if (!original.trim()) return;
 
     // If editing, update the existing sentence
     if (editingSentence) {
       const updated = await updateSentenceInStorage(editingSentence.id, {
-        original: orig.trim(),
-        translation: trans.trim(),
+        original: original.trim(),
+        translation: translation.trim(),
         updatedAt: Date.now(),
       });
 
@@ -76,8 +86,8 @@ export default function SentencesScreen() {
     } else {
       const newSentence = {
         id: Date.now().toString(),
-        original: orig.trim(),
-        translation: trans.trim(),
+        original: original.trim(),
+        translation: translation.trim(),
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
@@ -86,18 +96,18 @@ export default function SentencesScreen() {
       setSentences(updated);
     }
 
-    // setOriginal('');
-    // setTranslation('');
+    setOriginal('');
+    setTranslation('');
     setEditingSentence(null);
     setShowEditor(false);
   }
 
   // Cancel editing, reset form and hide
-  function cancelSave() {
+  function cancelEditing() {
     setEditingSentence(null); // reset editing state
 
-    // setOriginal('');
-    // setTranslation('');
+    setOriginal('');
+    setTranslation('');
 
     setShowEditor(false);
   }
@@ -109,53 +119,89 @@ export default function SentencesScreen() {
   }
 
   // Edit a sentence in list & storageAsync
-  async function handleEdit(sentence: SentenceItem) {
+  async function startEdit(sentence: SentenceItem) {
     setEditingSentence(sentence);
 
-    // setOriginal(sentence.original);
-    // setTranslation(sentence.translation);
+    setOriginal(sentence.original);
+    setTranslation(sentence.translation);
 
     setShowEditor(true);
   }
 
   return (
-    <View className="flex-1 bg-emerald-400 px-5 pt-16">
-      <View className="flex-row items-center justify-between">
-        {/* Title */}
-        <Text className="text-3xl font-bold text-white">Sentences</Text>
+    <View className="flex-1">
+      <View className="flex-1 bg-emerald-400 px-5 pt-16">
+        <View className="flex-row items-center justify-between pb-2">
+          {/* Title */}
+          <Text className="text-3xl font-bold text-white">Sentences</Text>
 
-        {/* Add Button */}
-        <TouchableOpacity
-          activeOpacity={0.6}
-          onPress={showAddForm}
-          className="rounded-3xl bg-slate-800 px-10 py-3"
-        >
-          <Text className="text-center text-white">+</Text>
-        </TouchableOpacity>
+          {/* Add Button */}
+          <TouchableOpacity
+            activeOpacity={0.6}
+            onPress={openAddEditor}
+            className="rounded-3xl bg-slate-800 px-10 py-3"
+          >
+            <Text className="text-center text-white">+</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Sentence List */}
+        <FlatList
+          data={sentences}
+          keyExtractor={(item) => item.id}
+          onTouchStart={() => setOpenSwipeId(null)}
+          onScrollBeginDrag={() => setOpenSwipeId(null)}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            // gap: 10,
+            paddingBottom: 250,
+            paddingTop: 16,
+          }}
+          ItemSeparatorComponent={() => <View style={{ height: 15 }} />}
+          renderItem={({ item }) => (
+            <SentenceCard
+              sentence={item}
+              openSwipeId={openSwipeId}
+              onSwipeOpen={() => setOpenSwipeId(item.id)}
+              onDelete={() => handleDelete(item.id)}
+              onEdit={() => startEdit(item)}
+              onPress={() => {
+                setPlayingSentence(item);
+                setPlaybackState(PlaybackState.Playing);
+              }}
+            />
+          )}
+        />
+
+        {/* Editor Modal */}
+        <SentenceEditorModal
+          visible={showEditor}
+          isEditing={!!editingSentence}
+          original={original}
+          translation={translation}
+          onChangeOriginal={setOriginal}
+          onChangeTranslation={setTranslation}
+          onCancel={cancelEditing}
+          onSave={saveSentence}
+        />
       </View>
 
-      {/* SaveSentence Form, for adding or editing */}
-      {showEditor && (
-        <SaveSentenceForm
-          editingSentence={editingSentence}
-          onSubmit={saveSentence}
-          onCancel={cancelSave}
-        />
-      )}
-
-      {/* Sentence List */}
-      <FlatList
-        data={sentences}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ gap: 10, paddingBottom: 250, paddingTop: 16 }}
-        showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <SentenceCard
-            onDelete={() => handleDelete(item.id)}
-            onEdit={() => handleEdit(item)}
-            sentence={item}
-          />
-        )}
+      {/* MiniPlayer */}
+      <MiniPlayer
+        sentence={playingSentence}
+        playbackState={playbackState}
+        onTogglePlay={() => {
+          setPlaybackState((prev) => {
+            return prev === PlaybackState.Playing
+              ? PlaybackState.Paused
+              : PlaybackState.Playing;
+          });
+        }}
+        onClose={() => {
+          setPlayingSentence(null);
+          setPlaybackState(PlaybackState.Idle);
+        }}
       />
     </View>
   );
