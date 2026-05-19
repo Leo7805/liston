@@ -1,3 +1,6 @@
+import { usePlayerStore } from '@/stores/playerStore';
+import { useUiStore } from '@/stores/uiStore';
+import { useState, useEffect } from 'react';
 import {
   Pressable,
   Modal,
@@ -7,79 +10,117 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
-type SentenceEditorModalProps = {
-  visible: boolean;
-  isEditing: boolean;
+export function SentenceEditorModal() {
+  const [original, setOriginal] = useState('');
+  const [translation, setTranslation] = useState('');
 
-  original: string;
-  translation: string;
+  const editingSentence = useUiStore((s) => s.editingSentence);
 
-  onChangeOriginal: (text: string) => void;
-  onChangeTranslation: (text: string) => void;
+  const addItemToPlayingList = usePlayerStore((s) => s.addItemToPlayingList);
+  const updateItemInPlayingList = usePlayerStore(
+    (s) => s.updateItemInPlayingList
+  );
 
-  onCancel: () => void;
-  onSave: () => void;
-};
+  const setEditingSentence = useUiStore((s) => s.setEditingSentence);
+  const closeSentenceEditor = useUiStore((s) => s.closeSentenceEditor);
 
-export function SentenceEditorModal({
-  visible,
-  isEditing,
-  original,
-  translation,
-  onChangeOriginal,
-  onChangeTranslation,
-  onCancel,
-  onSave,
-}: SentenceEditorModalProps) {
+  /** Update form fields when editing sentence changes */
+  useEffect(() => {
+    setOriginal(editingSentence?.original ?? '');
+    setTranslation(editingSentence?.translation ?? '');
+  }, [editingSentence]);
+
+  /** Add/update a new sentence to sentence list & storageASync */
+  async function handleSave() {
+    const trimmedOriginal = original.trim();
+    const trimmedTranslation = translation.trim();
+
+    if (!trimmedOriginal) return;
+
+    // If editing, update the existing sentence
+    if (editingSentence) {
+      await updateItemInPlayingList(editingSentence.id, {
+        original: trimmedOriginal,
+        translation: trimmedTranslation,
+      });
+    } else {
+      // If adding new, create a new sentence item and add to storage
+      const newSentence = {
+        id: Date.now().toString(),
+        original: trimmedOriginal,
+        translation: trimmedTranslation,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+
+      await addItemToPlayingList(newSentence);
+    }
+
+    setOriginal('');
+    setTranslation('');
+    setEditingSentence(null);
+    closeSentenceEditor();
+  }
+
+  /* Cancel editing, reset form and hide */
+  function cancelEditing() {
+    setEditingSentence(null); // reset editing state
+
+    setOriginal('');
+    setTranslation('');
+
+    closeSentenceEditor(); // close the editor modal
+  }
+
   return (
-    <Modal visible={visible} animationType="fade" transparent>
+    <Modal visible animationType="fade" transparent>
       <Pressable
-        onPress={onCancel}
+        onPress={cancelEditing}
         className="flex-1 justify-start bg-black/60 px-2 pt-[100px]"
       >
         <Pressable
           onPress={(e) => e.stopPropagation()}
-          className="rounded-3xl bg-slate-900 p-5"
+          className="rounded-3xl bg-white p-5"
         >
-          <Text className="text-2xl font-bold text-white">
-            {isEditing ? 'Edit Sentence' : 'Add Sentence'}
+          <Text className="text-2xl font-bold text-slate-950">
+            {editingSentence ? 'Edit Sentence' : 'Add Sentence'}
           </Text>
 
           {/* Original sentence */}
           <TextInput
             value={original}
-            onChangeText={onChangeOriginal}
+            onChangeText={setOriginal}
             placeholder="Original sentence"
             placeholderTextColor="#64748b"
-            className="mt-5 rounded-2xl bg-slate-800 px-4 py-3 text-base text-white"
+            className="mt-5 rounded-2xl bg-emerald-50 px-4 py-3 text-base text-slate-950"
           />
 
           {/* Translation */}
           <TextInput
             value={translation}
-            onChangeText={onChangeTranslation}
+            onChangeText={setTranslation}
             placeholder="Translation"
             placeholderTextColor="#64748b"
-            className="mt-5 rounded-2xl bg-slate-800 px-4 py-3 text-base text-white"
+            className="mt-5 rounded-2xl bg-emerald-50 px-4 py-3 text-base text-slate-950"
           />
 
           {/* Buttons */}
           <View className="mt-4 flex-row gap-3">
             <TouchableOpacity
-              onPress={onCancel}
-              className="flex-1 rounded-2xl bg-slate-600 px-4 py-3"
+              onPress={cancelEditing}
+              className="flex-1 rounded-2xl bg-slate-100 px-4 py-3"
             >
-              <Text className="text-center text-base font-semibold text-white">
+              <Text className="text-center text-base font-semibold text-slate-700">
                 Cancel
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={onSave}
-              className="flex-1 rounded-2xl bg-blue-500 px-5 py-3"
+              onPress={handleSave}
+              className="flex-1 rounded-2xl bg-emerald-600 px-5 py-3"
             >
-              <Text className="text-center text-base font-semibold text-slate-950">
-                {isEditing ? 'Update' : 'Add'}
+              <Text className="text-center text-base font-semibold text-white">
+                {editingSentence ? 'Update' : 'Add'}
               </Text>
             </TouchableOpacity>
           </View>

@@ -18,12 +18,18 @@ const SENTENCE_STORAGE_KEY = 'liston:sentences';
  */
 const SENTENCE_INITIALIZED_KEY = 'liston:sentences:initialized';
 
-export async function hasInitializedSentences(): Promise<boolean> {
+/**
+ * @internal
+ * Store the last playing sentence to persist playback state across app restarts.
+ */
+const LAST_PLAYING_SENTENCE_KEY = 'liston:lastPlayingSentence';
+
+export async function isSentencesInitialized(): Promise<boolean> {
   const flag = await AsyncStorage.getItem(SENTENCE_INITIALIZED_KEY);
   return flag === 'true';
 }
 
-export async function setInitializedSentences(): Promise<void> {
+export async function markSentencesAsInitialized(): Promise<void> {
   await AsyncStorage.setItem(SENTENCE_INITIALIZED_KEY, 'true');
 }
 
@@ -135,4 +141,38 @@ export async function clearSentencesAndInitializedFlag(): Promise<void> {
 export async function isSentenceStorageEmpty(): Promise<boolean> {
   const sentences = await getSentencesFromStorage();
   return sentences.length === 0;
+}
+
+/**
+ * Store the last playing sentence to persist playback state across app restarts.
+ */
+export async function saveLastPlayingSentenceToStorage(
+  sentence: SentenceItem | null
+): Promise<void> {
+  if (sentence) {
+    await AsyncStorage.setItem(
+      LAST_PLAYING_SENTENCE_KEY,
+      JSON.stringify(sentence)
+    );
+  } else {
+    await AsyncStorage.removeItem(LAST_PLAYING_SENTENCE_KEY);
+  }
+}
+
+export async function getLastPlayingSentenceFromStorage(): Promise<SentenceItem | null> {
+  const raw = await AsyncStorage.getItem(LAST_PLAYING_SENTENCE_KEY);
+  if (!raw) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed as SentenceItem;
+  } catch (e) {
+    console.warn('Failed to parse last playing sentence from storage.', e);
+    return null;
+  }
+}
+
+export async function clearLastPlayingSentenceFromStorage(): Promise<void> {
+  await AsyncStorage.removeItem(LAST_PLAYING_SENTENCE_KEY);
 }
