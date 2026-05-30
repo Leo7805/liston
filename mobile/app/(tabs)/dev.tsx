@@ -1,18 +1,15 @@
 import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useState } from 'react';
-import { useI18n } from '@/i18n/useI18n';
-import { getAudioUri } from '@/services/audio/ttsAudioResolver';
-import { LanguageCode } from '@/types/tts';
+import { useI18nStore } from '@/global/i18n/i18n.store';
+import { getAudioUri } from '@/global/services/audio/ttsAudioResolver';
+import { LanguageCode } from '@/global/constants/languages-codes';
 import {
   clearSentencesAndInitializedFlag,
   clearSentencesFromStorage,
-  isSentenceStorageEmpty,
-} from '@/services/sentenceStore';
-import AsyncStorage from '@react-native-async-storage/async-storage/lib/typescript/AsyncStorage';
+} from '@/features/sentences/sentence.repository';
 
 export default function App() {
-  const { t, toggleAppLanguage } = useI18n();
   const [text, setText] = useState('Hello, how are you?');
   const [audioUri, setAudioUri] = useState<string | null>(null);
 
@@ -22,6 +19,9 @@ export default function App() {
 
   const player = useAudioPlayer(audioUri ? { uri: audioUri } : undefined);
   const status = useAudioPlayerStatus(player);
+
+  const { toggleAppLanguage } = useI18nStore.getState();
+  const t = useI18nStore((s) => s.t);
 
   /* Generate audio for the input text using TTS and cache it, then play it */
   async function generateAudio() {

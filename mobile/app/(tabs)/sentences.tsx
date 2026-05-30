@@ -1,38 +1,40 @@
-import { View, Text } from 'react-native';
-import { SentenceEditorModal } from '@/components/SentenceEditorModal';
-import { MiniPlayer } from '@/components/MiniPlayer';
-// import { FullPlayerModal } from '@/components/FullPlayerModal';
-import { AddSentenceButton } from '@/components/AddSentenceButton';
-import { PlayingList } from '@/components/PlayingList';
-import { FullPlayerModal } from '@/components/FullPlayerModal';
-import { useUiStore } from '@/stores/uiStore';
+import { useCallback } from 'react';
+import { View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { SentenceEditorModal } from '@/features/sentences/components/SentenceEditorModal';
+import { SentenceSearchHeader } from '@/global/components/SentenceSearchHeader';
+import { SentencesHeader } from '@/features/sentences/components/SentencesHeader';
+import { SavedSentences } from '@/features/sentences/components/SavedSentences';
+import { useUiStore } from '@/global/stores/ui.store';
 
 export default function SentencesScreen() {
+  const isSentenceSearching = useUiStore((s) => s.isSentenceSearching);
+  const { closeSentenceSearch } = useUiStore.getState();
+
   const showSentenceEditor = useUiStore((s) => s.showSentenceEditor);
 
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        // Clear search state when leaving the screen
+        closeSentenceSearch();
+      };
+    }, [closeSentenceSearch])
+  );
+
   return (
-    <View className="flex-1">
-      <View className="flex-1 bg-emerald-400 px-5 pt-16">
-        <View className="flex-row items-center justify-between pb-2">
-          {/* Page Title */}
-          <Text className="text-3xl font-bold text-white">Sentences</Text>
+    <View className="flex-1 px-3">
+      {/* Header */}
+      {isSentenceSearching ? <SentenceSearchHeader /> : <SentencesHeader />}
 
-          {/* Open Sentence Editor Button */}
-          <AddSentenceButton />
-        </View>
-
-        {/* Currently playing Sentence list */}
-        <PlayingList />
-
-        {/* Editor Modal */}
-        {showSentenceEditor && <SentenceEditorModal />}
+      {/* Content */}
+      <View className="flex-1">
+        {/*  Sentences list of current selected group*/}
+        <SavedSentences />
       </View>
 
-      {/* MiniPlayer */}
-      <MiniPlayer />
-
-      {/* FullPlayer Modal */}
-      <FullPlayerModal />
+      {/* Editor Modal */}
+      {showSentenceEditor && <SentenceEditorModal />}
     </View>
   );
 }

@@ -1,42 +1,33 @@
-import { Text, View } from 'react-native';
-import { AppButton } from '@/components/AppButton';
+import { useCallback } from 'react';
+import { View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { PlayingSentences } from '@/features/playlists/components/PlayingSentences';
+import { useUiStore } from '@/global/stores/ui.store';
+import { PlaylistHeader } from '@/features/playlists/components/PlaylistHeader';
+import { SentenceSearchHeader } from '@/global/components/SentenceSearchHeader';
 
-export default function PlayScreen() {
+export default function PlaylistScreen() {
+  const isPlaylistSearching = useUiStore((s) => s.isSentenceSearching);
+  const { closeSentenceSearch } = useUiStore.getState();
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        // Clear search state when leaving the screen
+        closeSentenceSearch();
+      };
+    }, [closeSentenceSearch])
+  );
+
   return (
-    <View className="flex-1 bg-emerald-400 px-5 pt-16">
-      {/* Title */}
-      <Text className="text-3xl font-bold text-white">Liston</Text>
+    <View className="flex-1 px-3">
+      {/* Header */}
+      {isPlaylistSearching ? <SentenceSearchHeader /> : <PlaylistHeader />}
 
-      {/* Subtitle */}
-      <Text className="mt-2 text-base text-slate-800">
-        Open, listen, repeat.
-      </Text>
-
-      {/* Sentence Card */}
-      <View className="mt-10 rounded-3xl bg-emerald-200 p-5">
-        <Text className="text-sm font-medium uppercase text-slate-600">
-          Current sentence
-        </Text>
-
-        <Text className="mt-4 text-2xl font-semibold leading-8 text-white">
-          No sentence yet
-        </Text>
-
-        <Text className="mt-3 text-base text-slate-700">
-          Add sentences in the Sentences tab to start listening.
-        </Text>
-      </View>
-
-      {/* Buttons */}
-      <View className="mt-8 flex-row gap-3">
-        <AppButton title="Previous" variant="secondary" />
-
-        <View className="flex-1">
-          <AppButton title="Play" />
-        </View>
-
-        <AppButton title="Next" variant="secondary" />
-        <AppButton title="Stop" variant="secondary" />
+      {/* Content */}
+      <View className="flex-1">
+        {/* Currently playing Sentence list */}
+        <PlayingSentences />
       </View>
     </View>
   );

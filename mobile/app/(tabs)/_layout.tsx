@@ -1,5 +1,9 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { View } from 'react-native';
+import { MiniPlayer } from '@/global/components/MiniPlayer';
+import { GlobalErrorModal } from '@/global/components/GlobalErrorModal';
+import { FullPlayerModal } from '@/global/components/FullPlayerModal';
 
 /** Type for the names of icons available in Ionicons. */
 type TabIconName = keyof typeof Ionicons.glyphMap;
@@ -44,26 +48,42 @@ const tabBarLabelStyle = {
 /** The layout component for the tab navigator, defining the styles and screens. */
 export default function TabLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle,
-        tabBarActiveTintColor: '#ffffff',
-        tabBarInactiveTintColor: '#94a3b8',
-        tabBarLabelStyle,
-      }}
-    >
-      <Tabs.Screen name="index" options={tabOptions('Play', 'play-circle')} />
+    <View className="flex-1 bg-emerald-400">
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          sceneStyle: {
+            backgroundColor: '#34d399',
+          },
+          tabBarStyle,
+          tabBarActiveTintColor: '#ffffff',
+          tabBarInactiveTintColor: '#94a3b8',
+          tabBarLabelStyle,
+        }}
+      >
+        <Tabs.Screen name="index" options={tabOptions('Play', 'play-circle')} />
 
-      <Tabs.Screen
-        name="sentences"
-        options={tabOptions('Sentences', 'document-text')}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={tabOptions('Settings', 'settings')}
-      />
-      <Tabs.Screen name="dev" options={tabOptions('dev', 'code-slash')} />
-    </Tabs>
+        <Tabs.Screen
+          name="sentences"
+          options={tabOptions('Sentences', 'document-text')}
+        />
+
+        <Tabs.Screen
+          name="settings"
+          options={tabOptions('Settings', 'settings')}
+        />
+
+        <Tabs.Screen name="dev" options={tabOptions('dev', 'code-slash')} />
+      </Tabs>
+
+      {/* MiniPlayer */}
+      <MiniPlayer />
+
+      {/* FullPlayer Modal */}
+      <FullPlayerModal />
+
+      {/* Global Error Modal */}
+      <GlobalErrorModal />
+    </View>
   );
 }
