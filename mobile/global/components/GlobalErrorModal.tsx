@@ -6,7 +6,7 @@ export function GlobalErrorModal() {
 
   return (
     <Modal visible={!!error} transparent animationType="fade">
-      <View className="flex-1 items-center justify-center bg-black bg-opacity-50">
+      <View className="flex-1 items-center justify-center bg-transparent">
         <View className="bg-white rounded-lg p-6 w-3/4">
           <Text className="text-lg font-bold mb-4">Error</Text>
           <Text className="mb-4">{error}</Text>

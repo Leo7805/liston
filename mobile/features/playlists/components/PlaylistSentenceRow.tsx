@@ -8,48 +8,56 @@ import { usePlayerStore } from '@/features/player/player.store';
 import { useUiStore } from '@/global/stores/ui.store';
 import { ActionButton } from '@/global/components/ActionButton';
 import { PressableView } from '@/global/components/PressableView';
+import { useSentenceStore } from '@/features/sentences/sentence.store';
 
 /**
- * This component is responsible for displaying a single sentence card,
+ * This component is responsible for displaying a single sentence row,
  * which includes the original sentence and its translation.
  */
 
-type SentenceCardProps = {
+type SentenceRowProps = {
   sentence: SentenceItem;
   currentOpenSwipeId: string | null;
   onSwipeOpen: () => void;
 };
 
-export function SentenceCard({
+export function PlaylistSentenceRow({
   sentence,
   currentOpenSwipeId,
   onSwipeOpen,
-}: SentenceCardProps) {
+}: SentenceRowProps) {
   /** Guard against repeated deletions */
   const [isDeleting, setIsDeleting] = useState(false); // State to track if the sentence is being deleted
 
+  /** Reference to the swipeable component */
   const swipeableRef = useRef<SwipeableMethods>(null);
 
-  // Close swipeable actions when another card/sentence is swiped open
+  const { setEditingSentenceId, openSentenceEditor } = useUiStore.getState();
+  const { deleteSentences } = useSentenceStore.getState();
+
+  /** Close swipeable actions when another card/sentence is swiped open */
   useEffect(() => {
     if (currentOpenSwipeId !== sentence.id) {
       swipeableRef.current?.close();
     }
   }, [currentOpenSwipeId, sentence.id]);
 
+  /** Close the swipeable component */
   function closeSwipeable() {
     swipeableRef.current?.close();
   }
 
+  /** Handle edit action */
   function handleEdit() {
     closeSwipeable();
 
-    useUiStore.getState().setEditingSentence(sentence); // Set the current editing sentence in UI store
+    setEditingSentenceId(sentence.id);
 
-    useUiStore.getState().openSentenceEditor(); // Open the sentence editor modal
+    openSentenceEditor(); // Open the sentence editor modal
   }
 
-  async function handleDelete(sentenceId: string) {
+  /** Handle delete action */
+  function handleDelete(sentenceId: string) {
     if (isDeleting) return; // Prevent multiple deletions
 
     setIsDeleting(true);
@@ -57,7 +65,7 @@ export function SentenceCard({
     closeSwipeable();
 
     try {
-      await usePlayerStore.getState().deleteItemFromPlayingList(sentenceId);
+      deleteSentences([sentenceId]);
     } finally {
       setIsDeleting(false);
     }
@@ -65,9 +73,7 @@ export function SentenceCard({
 
   /* Play the sentence when the card is pressed */
   function handleSentencePress() {
-    closeSwipeable();
-
-    usePlayerStore.getState().playSentence(sentence);
+    usePlayerStore.getState().play(sentence.id);
   }
 
   return (

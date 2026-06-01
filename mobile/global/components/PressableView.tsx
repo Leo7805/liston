@@ -9,15 +9,17 @@ type PressableViewProps = {
   children: ReactNode;
   className?: string;
   onPress?: () => void;
+  onLongPress?: () => void;
 };
 
 export function PressableView({
   children,
   className,
   onPress,
+  onLongPress,
 }: PressableViewProps) {
   return (
-    <Pressable onPress={onPress}>
+    <Pressable onPress={onPress} onLongPress={onLongPress} delayLongPress={200}>
       {({ pressed }) => (
         <View
           className={className}

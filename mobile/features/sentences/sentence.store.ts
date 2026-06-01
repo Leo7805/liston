@@ -67,7 +67,7 @@ export const useSentenceStore = create<SentenceState>()(
             });
 
             set({
-              sentences: [...sentences, updatedSentence],
+              sentences: [updatedSentence, ...sentences], // Add the new sentence to the beginning of the list for better visibility
               currentGroupId: updatedSentence.groupId,
             });
           } catch (error) {

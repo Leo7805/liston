@@ -30,6 +30,15 @@ const textVariantClassMap: Record<ButtonVariant, string> = {
   danger: 'text-white',
 };
 
+/**
+ * A reusable action button component with different variants and optional left icon.
+ * @param param0  - title: The text to display on the button.
+ *               - variant: The style variant of the button (primary, secondary, ghost, danger). Default is 'primary'.
+ *              - disabled: Whether the button is disabled. Default is false.
+ *             - leftIcon: An optional ReactNode to display as an icon on the left side of the button text.
+ *            - onPress: An optional function to call when the button is pressed.
+ * @returns  A Pressable button component with the specified title, variant, and optional left icon.
+ */
 export function ActionButton({
   title,
   variant = 'primary',

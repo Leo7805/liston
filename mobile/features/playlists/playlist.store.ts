@@ -19,6 +19,10 @@ type PlaylistState = {
   renameCurrentPlaylist: (newName: string) => void;
   deleteCurrentPlaylist: () => void;
   addSentencesToCurrentPlaylist: (sentenceIds: string[]) => void;
+  addSentencesToPlaylist: (
+    sentenceIds: string[],
+    targetPlaylistId: string
+  ) => void;
   removeSentencesFromCurrentPlaylist: (sentenceIds: string[]) => void;
   removeSentencesFromAllPlaylists: (
     sentenceIds: string[],
@@ -108,6 +112,27 @@ export const usePlaylistStore = create<PlaylistState>()(
             const updatedPlaylists = playlistService.addSentencesToPlaylist(
               sentenceIds,
               currentPlaylistId,
+              sentences, // Pass the list of sentences for validation
+              playlists
+            );
+
+            set({ playlists: updatedPlaylists });
+          } catch (error) {
+            handleError(error);
+          }
+        },
+
+        addSentencesToPlaylist: (
+          sentenceIds: string[],
+          targetPlaylistId: string
+        ) => {
+          try {
+            const { playlists } = get();
+            const { sentences } = useSentenceStore.getState(); // Get the list of sentences for validation
+
+            const updatedPlaylists = playlistService.addSentencesToPlaylist(
+              sentenceIds,
+              targetPlaylistId,
               sentences, // Pass the list of sentences for validation
               playlists
             );

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, View } from 'react-native';
-import { SentenceCard } from '@/features/playlists/components/SentenceCard';
+import { PlaylistSentenceRow } from '@/features/playlists/components/PlaylistSentenceRow';
 import { usePlayerStore } from '@/features/player/player.store';
 import { usePlaylistStore } from '../playlist.store';
 import { SentenceItem } from '@/features/sentences/sentence.types';
@@ -56,7 +56,7 @@ export function PlayingSentences() {
         { item } // SentenceCard: for Each Sentence
       ) => (
         // Each Sentence
-        <SentenceCard
+        <PlaylistSentenceRow
           sentence={item}
           currentOpenSwipeId={openSwipeId} // Set currentOpenSwipeId props to local "openSwipeId" state
           onSwipeOpen={() => setOpenSwipeId(item.id)} // 3. Open action
