@@ -12,7 +12,7 @@ type AppButtonProps = {
 };
 
 const buttonVariantClassMap: Record<ButtonVariant, string> = {
-  primary: 'bg-emerald-600',
+  primary: 'bg-cyan-600',
   secondary: 'bg-slate-200',
   ghost: 'bg-white/10',
   danger: 'bg-red-500',

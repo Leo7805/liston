@@ -1,9 +1,9 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { View } from 'react-native';
-import { MiniPlayer } from '@/global/components/MiniPlayer';
+import { MiniPlayer } from '@/features/player/components/MiniPlayer';
+import { FullPlayerModal } from '@/features/player/components/FullPlayerModal';
 import { GlobalErrorModal } from '@/global/components/GlobalErrorModal';
-import { FullPlayerModal } from '@/global/components/FullPlayerModal';
 
 /** Type for the names of icons available in Ionicons. */
 type TabIconName = keyof typeof Ionicons.glyphMap;

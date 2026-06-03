@@ -23,21 +23,21 @@ export function usePlayingTextAnimation() {
     // Define the animation: move text left and right in a loop to create a "playing" effect
     const animation = Animated.loop(
       Animated.sequence([
+        // Animated.timing(translateX, {
+        //   toValue: 6, // Move 6 pixels to the right
+        //   duration: 900, // Duration of the animation
+        //   easing: Easing.inOut(Easing.ease),
+        //   useNativeDriver: true, // Use native driver for better performance
+        // }),
         Animated.timing(translateX, {
-          toValue: 6, // Move 6 pixels to the right
-          duration: 900, // Duration of the animation
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true, // Use native driver for better performance
-        }),
-        Animated.timing(translateX, {
-          toValue: -6, // Move 6 pixels to the left
-          duration: 900,
+          toValue: -70, // Move -70 pixels to the left
+          duration: 3000,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(translateX, {
           toValue: 0, // Move back to original position
-          duration: 900,
+          duration: 3000,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),

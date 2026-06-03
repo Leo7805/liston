@@ -5,7 +5,7 @@ import { LibrarySentenceRow } from '@/features/sentences/components/LibrarySente
 import { useUiStore } from '@/global/stores/ui.store';
 import { normalizeText } from '@/global/utils/text';
 
-export function SentenceLibrary() {
+export function LibrarySentences() {
   const sentenceList = useSentenceStore((s) => s.sentences); // All sentences
   const currentGroupId = useSentenceStore((s) => s.currentGroupId); // Current selected group ID
   const sentenceSearchText = useUiStore((s) => s.sentenceSearchText); // Current search keyword

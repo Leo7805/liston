@@ -37,7 +37,11 @@ type SentenceState = {
    */
   deleteSentences: (sentenceIds: string[]) => void;
 
-  // Move multiple sentences to a different group
+  /**
+   * Move multiple sentences to a different group
+   * @param sentenceIds The IDs of the sentences to move
+   * @param targetGroupId The ID of the group to move the sentences to
+   */
   moveSentences: (sentenceIds: string[], targetGroupId: string) => void;
 
   selectGroup: (groupId: string | null) => void;

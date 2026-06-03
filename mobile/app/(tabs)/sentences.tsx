@@ -4,12 +4,14 @@ import { useFocusEffect } from '@react-navigation/native';
 import { SentenceEditorModal } from '@/features/sentences/components/SentenceEditorModal';
 import { SentenceSearchHeader } from '@/global/components/SentenceSearchHeader';
 import { SentencesHeader } from '@/features/sentences/components/SentencesHeader';
-import { SentenceLibrary } from '@/features/sentences/components/SentenceLibrary';
+import { LibrarySentences } from '@/features/sentences/components/LibrarySentences';
 import { useUiStore } from '@/global/stores/ui.store';
 import { useSentenceSelectionStore } from '@/features/sentences/sentenceSelection.store';
 import { SentenceSelectionHeader } from '@/features/sentences/components/SentenceSelectionHeader';
 import { MoveToGroupModal } from '@/features/sentences/components/MoveToGroupModal';
-import { AddToPlaylistModal } from '@/features/playlists/components/AddToPlaylistModal';
+import { AddToPlaylistModal } from '@/features/sentences/components/AddToPlaylistModal';
+import { CreateGroupModal } from '@/features/sentences/components/CreateGroupModal';
+import { RenameGroupModal } from '@/features/sentences/components/RenameGroupModal';
 
 export default function SentencesScreen() {
   const isSentenceSelecting = useSentenceSelectionStore(
@@ -20,6 +22,8 @@ export default function SentencesScreen() {
   const { closeSentenceSearch } = useUiStore.getState();
 
   const showSentenceEditor = useUiStore((s) => s.showSentenceEditor);
+  const showCreateGroupModal = useUiStore((s) => s.showCreateGroupModal);
+  const showRenameGroupModal = useUiStore((s) => s.showRenameGroupModal);
 
   const { exitSelectionMode } = useSentenceSelectionStore.getState();
   const showMoveToGroupModal = useSentenceSelectionStore(
@@ -54,7 +58,7 @@ export default function SentencesScreen() {
       {/* Content */}
       <View className="flex-1">
         {/*  Sentences list of current selected group*/}
-        <SentenceLibrary />
+        <LibrarySentences />
       </View>
 
       {/* Editor Modal */}
@@ -65,6 +69,12 @@ export default function SentencesScreen() {
 
       {/* Add to Playlist Modal - SentenceSelectionHeader */}
       {showAddToPlaylistModal && <AddToPlaylistModal />}
+
+      {/* Create Group Modal  */}
+      {showCreateGroupModal && <CreateGroupModal />}
+
+      {/* Rename Group Modal  */}
+      {showRenameGroupModal && <RenameGroupModal />}
     </View>
   );
 }

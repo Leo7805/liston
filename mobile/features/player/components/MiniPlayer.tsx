@@ -26,7 +26,7 @@ export function MiniPlayer({
   onOpenMenu,
   onOpenFullPlayer,
 }: MiniPlayerProps) {
-  const currentItemId = usePlayerStore((s) => s.playlistItemId);
+  const currentPlaylistItemId = usePlayerStore((s) => s.playlistItemId);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
   const { togglePlay } = usePlayerStore.getState();
 
@@ -42,18 +42,23 @@ export function MiniPlayer({
     // console.log('Open full player');
   }
 
-  /** Get the currently playing sentence based on the currentItemId */
-  const playingSentence = useMemo(() => {
-    if (!currentItemId) return null;
+  /** Get current playlist item */
+  const currentPlaylistItem = useMemo(() => {
+    if (!currentPlaylistItemId) return null;
 
-    const playlistItem = playlists
+    return playlists
       .flatMap((p) => p.items)
-      .find((item) => item.id === currentItemId);
+      .find((item) => item.id === currentPlaylistItemId);
+  }, [currentPlaylistItemId, playlists]);
 
-    if (!playlistItem) return null;
+  /** Get the currently playing sentence*/
+  const playingSentence = useMemo(() => {
+    if (!currentPlaylistItem) return null;
 
-    return sentences.find((s) => s.id === playlistItem.sentenceId) ?? null;
-  }, [currentItemId, playlists, sentences]);
+    return (
+      sentences.find((s) => s.id === currentPlaylistItem.sentenceId) ?? null
+    );
+  }, [currentPlaylistItem, sentences]);
 
   return (
     <Pressable onPress={handleOpenFullPlayer}>
@@ -64,17 +69,19 @@ export function MiniPlayer({
       >
         <View className="px-4 py-3 flex-row items-center gap-8">
           {/* Sentence Text on MiniPlayer */}
-          <View className="flex-1">
-            <Animated.Text
-              className="text-white font-semibold"
-              numberOfLines={1}
+          <View className="flex-1 overflow-hidden">
+            <Animated.View
               style={{ transform: [{ translateX }] }}
+              className="flex-row items-center gap-2"
             >
-              {playingSentence?.original}
-            </Animated.Text>
-            <Text className="text-zinc-400 text-sm" numberOfLines={1}>
-              {playingSentence?.translation}
-            </Text>
+              <Text className="text-slate-100 font-medium " numberOfLines={1}>
+                {playingSentence?.original}
+              </Text>
+
+              <Text className="text-zinc-300 text-sm" numberOfLines={1}>
+                {playingSentence?.translation}
+              </Text>
+            </Animated.View>
           </View>
 
           {/* Play/Pause */}

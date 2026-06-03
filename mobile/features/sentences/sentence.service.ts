@@ -319,3 +319,20 @@ export function renameGroup(
       : g
   );
 }
+
+/**
+ * Get the count of sentences in each group. This function iterates through the list of sentences and counts how many sentences belong to each group, returning an object where the keys are group IDs and the values are the corresponding sentence counts.
+ * @param sentences The list of sentences to count.
+ * @returns An object mapping group IDs to the count of sentences in each group.
+ */
+export function getSentenceCountByGroup(
+  sentences: SentenceItem[]
+): Record<string, number> {
+  const countByGroup: Record<string, number> = {};
+
+  sentences.forEach((s) => {
+    countByGroup[s.groupId] = (countByGroup[s.groupId] || 0) + 1;
+  });
+
+  return countByGroup;
+}

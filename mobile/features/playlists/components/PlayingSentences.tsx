@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
-import { FlatList, View } from 'react-native';
-import { PlaylistSentenceRow } from '@/features/playlists/components/PlaylistSentenceRow';
+import { useEffect, useMemo } from 'react';
+import { FlatList, View, Text, TouchableOpacity } from 'react-native';
 import { usePlayerStore } from '@/features/player/player.store';
 import { usePlaylistStore } from '../playlist.store';
-import { SentenceItem } from '@/features/sentences/sentence.types';
 import { useSentenceStore } from '@/features/sentences/sentence.store';
+import { getItemById } from '@/global/utils/helpers';
 
 /**
  * Playing sentences list
@@ -12,11 +11,14 @@ import { useSentenceStore } from '@/features/sentences/sentence.store';
 
 export function PlayingSentences() {
   const currentPlaylistId = usePlaylistStore((s) => s.currentPlaylistId); // Current playlist ID
+  const playlistItemId = usePlayerStore((s) => s.playlistItemId); // Currently playing playlist item ID
   const playlists = usePlaylistStore((s) => s.playlists); // All playlists
   const sentences = useSentenceStore((s) => s.sentences); // All sentences
 
+  const { play } = usePlayerStore.getState();
+
   /** ID of currently opened swipeable sentence (for edit/delete actions) */
-  const [openSwipeId, setOpenSwipeId] = useState<string | null>(null);
+  // const [openSwipeId, setOpenSwipeId] = useState<string | null>(null);
 
   /** The "playingItem" change events: save current playing sentence */
   useEffect(() => {
@@ -26,24 +28,28 @@ export function PlayingSentences() {
     }
   }, [currentPlaylistId]);
 
+  /** Get current playlist items (not the sentences) */
+  const currentPlaylistItems = useMemo(() => {
+    const currentPlaylist = playlists.find((p) => p.id === currentPlaylistId);
+    return currentPlaylist ? currentPlaylist.items : [];
+  }, [playlists, currentPlaylistId]);
+
   /** Get the list of sentences in the currently playing playlist */
-  const playingSentences: SentenceItem[] = useMemo(() => {
-    const currentPlaylist =
-      playlists.find((p) => p.id === currentPlaylistId) ?? null;
+  // const playingSentences: SentenceItem[] = useMemo(() => {
+  //   const currentPlaylist =
+  //     playlists.find((p) => p.id === currentPlaylistId) ?? null;
 
-    if (!currentPlaylist) return [];
+  //   if (!currentPlaylist) return [];
 
-    const sentenceIds = currentPlaylist.items.map((item) => item.sentenceId);
+  //   const sentenceIds = currentPlaylist.items.map((item) => item.sentenceId);
 
-    return sentences.filter((s) => sentenceIds.includes(s.id));
-  }, [playlists, sentences, currentPlaylistId]);
+  //   return sentences.filter((s) => sentenceIds.includes(s.id));
+  // }, [playlists, sentences, currentPlaylistId]);
 
   return (
     <FlatList
-      data={playingSentences}
+      data={currentPlaylistItems}
       keyExtractor={(item) => item.id} // Use sentence ID as key
-      onTouchStart={() => setOpenSwipeId(null)} // 1. Touch action. Close any open swipeable when touching the list
-      onScrollBeginDrag={() => setOpenSwipeId(null)} // 2. Scroll action. Close any open swipeable when scrolling
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{
@@ -53,15 +59,87 @@ export function PlayingSentences() {
       }}
       ItemSeparatorComponent={() => <View style={{ height: 15 }} />} // replace gap with separator for better performance
       renderItem={(
-        { item } // SentenceCard: for Each Sentence
-      ) => (
+        { item, index } // SentenceCard: for Each Sentence
+      ) => {
         // Each Sentence
-        <PlaylistSentenceRow
-          sentence={item}
-          currentOpenSwipeId={openSwipeId} // Set currentOpenSwipeId props to local "openSwipeId" state
-          onSwipeOpen={() => setOpenSwipeId(item.id)} // 3. Open action
-        />
-      )}
+        // <View className=" px-4 py-2 flex-row items-start gap-2">
+        //   <Text className="text-xl font-semibold text-slate-700">
+        //     {item.original}
+        //   </Text>
+
+        //   <Text className="text-base text-gray-500">{item.translation}</Text>
+        // </View>
+
+        // <TouchableOpacity
+        //   className="px-4 py-2 active:opacity-60"
+        //   onPress={() => play(item.id)}
+        // >
+        //   <View className="flex-row items-start gap-2">
+        //     {/* index */}
+        //     <Text className="text-base text-slate-600 w-6 text-right">
+        //       {index + 1}.
+        //     </Text>
+
+        //     {/* text block */}
+        //     <View className="flex-1">
+        //       <Text className="text-lg font-semibold text-slate-900">
+        //         {item.original}
+        //       </Text>
+
+        //       <Text className="text-sm text-slate-500 mt-1">
+        //         {item.translation}
+        //       </Text>
+        //     </View>
+        //   </View>
+        // </TouchableOpacity>
+
+        const sentence = getItemById(item.sentenceId, sentences);
+        const isCurrentlyPlaying = playlistItemId === item.id;
+
+        return (
+          <TouchableOpacity
+            className="px-4 py-2 active:opacity-60"
+            onPress={() => play(item.id)}
+          >
+            <View className="flex-row items-start gap-2">
+              {/* index */}
+              <Text
+                className={
+                  isCurrentlyPlaying
+                    ? 'text-sm text-amber-600 w-6 text-right py-1 mr-2'
+                    : 'text-sm text-slate-600 w-6 text-right py-1 mr-2'
+                }
+              >
+                {index + 1}.
+              </Text>
+
+              <View className="flex-1">
+                <Text
+                  className={
+                    isCurrentlyPlaying
+                      ? 'text-lg font-semibold text-amber-600'
+                      : 'text-lg font-semibold text-slate-900'
+                  }
+                >
+                  {sentence?.original}
+                  {!!sentence?.translation && (
+                    <Text
+                      className={
+                        isCurrentlyPlaying
+                          ? 'text-sm font-normal text-amber-600'
+                          : 'text-sm font-normal text-slate-500'
+                      }
+                    >
+                      {'  '}
+                      {sentence.translation}
+                    </Text>
+                  )}
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        );
+      }}
     />
   );
 }

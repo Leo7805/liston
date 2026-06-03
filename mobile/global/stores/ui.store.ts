@@ -2,6 +2,8 @@ import { create } from 'zustand';
 
 export type UIState = {
   showSentenceEditor: boolean;
+  showCreateGroupModal: boolean;
+  showRenameGroupModal: boolean;
   editingSentenceId: string | null; // The sentence currently being edited (null if adding new)
   showFullPlayer: boolean;
   isSentenceSearching: boolean;
@@ -13,6 +15,10 @@ export type UIState = {
 
   openSentenceEditor: () => void;
   closeSentenceEditor: () => void;
+  openCreateGroupModal: () => void;
+  closeCreateGroupModal: () => void;
+  openRenameGroupModal: () => void;
+  closeRenameGroupModal: () => void;
   openFullPlayer: () => void;
   closeFullPlayer: () => void;
 
@@ -25,6 +31,8 @@ export type UIState = {
 
 export const useUiStore = create<UIState>((set) => ({
   showSentenceEditor: false,
+  showCreateGroupModal: false,
+  showRenameGroupModal: false,
   editingSentenceId: null,
   showFullPlayer: false,
   isSentenceSearching: false,
@@ -33,6 +41,10 @@ export const useUiStore = create<UIState>((set) => ({
 
   openSentenceEditor: () => set({ showSentenceEditor: true }),
   closeSentenceEditor: () => set({ showSentenceEditor: false }),
+  openCreateGroupModal: () => set({ showCreateGroupModal: true }),
+  closeCreateGroupModal: () => set({ showCreateGroupModal: false }),
+  openRenameGroupModal: () => set({ showRenameGroupModal: true }),
+  closeRenameGroupModal: () => set({ showRenameGroupModal: false }),
   openFullPlayer: () => set({ showFullPlayer: true }),
   closeFullPlayer: () => set({ showFullPlayer: false }),
 

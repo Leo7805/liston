@@ -135,7 +135,7 @@ export function LibrarySentenceRow({
         }
       >
         {/* Original Sentence */}
-        <Text className="text-xl font-semibold text-slate-900">
+        <Text className="text-lg font-semibold text-slate-900">
           {sentence.original}
         </Text>
 

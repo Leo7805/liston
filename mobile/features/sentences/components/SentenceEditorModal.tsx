@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Pressable, Modal, View, Text, TextInput } from 'react-native';
-import { Dropdown } from 'react-native-element-dropdown';
+import { View, Text, TextInput } from 'react-native';
 import { useUiStore } from '@/global/stores/ui.store';
-import { AppButton } from '@/global/components/AppButton';
-import { useSentenceStore } from '../sentence.store';
+import { useSentenceStore } from '@/features/sentences/sentence.store';
+import { DEFAULT_GROUP_ID } from '@/features/sentences/sentence.service';
 import { normalizeText } from '@/global/utils/text';
 import { getItemByIdOrThrow } from '@/global/utils/helpers';
-import { DEFAULT_GROUP_ID } from '../sentence.service';
+import { AppModal } from '@/global/components/AppModal';
+import { ItemDropdown } from '@/global/components/ItemDropdown';
 
 export function SentenceEditorModal() {
   /** Original and translation in current editor */
   const [original, setOriginal] = useState('');
   const [translation, setTranslation] = useState('');
-  const [groupId, setGroupId] = useState(DEFAULT_GROUP_ID); // State to track the selected group ID in the editor
+
+  const currentGroupId = useSentenceStore((s) => s.currentGroupId);
+  const [groupId, setGroupId] = useState(currentGroupId); // State to track the selected group ID in the editor
 
   const editingSentenceId = useUiStore((s) => s.editingSentenceId);
   const { setEditingSentenceId, closeSentenceEditor } = useUiStore.getState();
@@ -27,7 +29,7 @@ export function SentenceEditorModal() {
     if (!editingSentenceId) {
       setOriginal('');
       setTranslation('');
-      setGroupId(DEFAULT_GROUP_ID); // Reset to default group when adding new sentence
+      // setGroupId(DEFAULT_GROUP_ID); // Reset to default group when adding new sentence
       return;
     }
 
@@ -86,115 +88,46 @@ export function SentenceEditorModal() {
   }
 
   return (
-    <Modal visible animationType="fade" transparent>
-      <Pressable
-        onPress={cancelEditing}
-        className="flex-1 justify-start bg-black/60 px-2 pt-[100px]"
-      >
-        <Pressable
-          onPress={(e) => e.stopPropagation()}
-          className="rounded-3xl bg-emerald-100 p-5"
-        >
-          <Text className="text-2xl font-bold text-slate-950">
-            {editingSentenceId ? 'Edit Sentence' : 'Add Sentence'}
-          </Text>
+    <AppModal
+      title={editingSentenceId ? 'Edit Sentence' : 'Add Sentence'}
+      onClose={cancelEditing}
+      onConfirm={handleSave}
+      confirmText={editingSentenceId ? 'Update' : 'Add'}
+    >
+      {/* Original sentence */}
+      <TextInput
+        multiline
+        textAlignVertical="top"
+        numberOfLines={4}
+        value={original}
+        onChangeText={setOriginal}
+        placeholder="Original sentence"
+        placeholderTextColor="#64748b"
+        className="mt-5 min-h-32 rounded-2xl bg-cyan-100 px-4 py-3 text-base text-slate-950"
+      />
 
-          {/* Original sentence */}
-          <TextInput
-            multiline
-            textAlignVertical="top"
-            numberOfLines={4}
-            value={original}
-            onChangeText={setOriginal}
-            placeholder="Original sentence"
-            placeholderTextColor="#64748b"
-            className="mt-5 min-h-32 rounded-2xl bg-white px-4 py-3 text-base text-slate-950"
-          />
+      {/* Translation */}
+      <TextInput
+        multiline
+        textAlignVertical="top"
+        numberOfLines={4}
+        value={translation}
+        onChangeText={setTranslation}
+        placeholder="Translation"
+        placeholderTextColor="#64748b"
+        className="mt-5 min-h-32 rounded-2xl bg-cyan-100 px-4 py-3 text-base text-slate-950"
+      />
 
-          {/* Translation */}
-          <TextInput
-            multiline
-            textAlignVertical="top"
-            numberOfLines={4}
-            value={translation}
-            onChangeText={setTranslation}
-            placeholder="Translation"
-            placeholderTextColor="#64748b"
-            className="mt-5 min-h-32 rounded-2xl bg-white px-4 py-3 text-base text-slate-950"
-          />
+      {/* Groups */}
+      <View className="mt-5 flex-row items-center gap-4">
+        <Text className="text-lg font-semibold text-slate-950">Group</Text>
 
-          {/* Groups */}
-          <View className="mt-5 flex-row items-center gap-4">
-            <Text className="text-lg font-semibold text-slate-950">Group</Text>
-
-            <Dropdown
-              data={displayedGroups}
-              labelField="label"
-              valueField="value"
-              value={groupId}
-              activeColor="rgba(15, 23, 42, 0.18)"
-              onChange={(item) => {
-                setGroupId(item.value);
-              }}
-              style={{
-                marginTop: 8,
-                height: 42,
-                width: 150,
-                paddingHorizontal: 12,
-                borderRadius: 12,
-                backgroundColor: 'rgba(255, 255, 255, 0.88)',
-              }}
-              selectedTextStyle={{
-                color: '#0f172a',
-                fontSize: 13,
-                fontWeight: '400',
-              }}
-              containerStyle={{
-                maxHeight: 230,
-                borderRadius: 13,
-                backgroundColor: 'white', // emerald-200
-
-                borderWidth: 0,
-              }}
-              itemContainerStyle={{
-                borderRadius: 12, //  Add rounded corners to each item
-                overflow: 'hidden', // Ensure the background color is clipped to the rounded corners
-              }}
-              placeholderStyle={{
-                color: '#64748b',
-                fontSize: 13,
-              }}
-              itemTextStyle={{
-                color: '#0f172a',
-                fontSize: 13,
-              }}
-            ></Dropdown>
-          </View>
-
-          {/* Buttons */}
-          <View className="mt-8 flex-row gap-3">
-            <AppButton
-              title="Cancel"
-              onPress={cancelEditing}
-              variant="secondary"
-            />
-
-            {/* <TouchableOpacity
-              onPress={handleSave}
-              className="flex-1 rounded-2xl bg-emerald-600 px-5 py-3"
-            >
-              <Text className="text-center text-base font-semibold text-white">
-                {editingSentenceId ? 'Update' : 'Add'}
-              </Text>
-            </TouchableOpacity> */}
-            <AppButton
-              title={editingSentenceId ? 'Update' : 'Add'}
-              onPress={handleSave}
-              variant="primary"
-            />
-          </View>
-        </Pressable>
-      </Pressable>
-    </Modal>
+        <ItemDropdown
+          data={displayedGroups}
+          value={groupId}
+          onChange={setGroupId}
+        />
+      </View>
+    </AppModal>
   );
 }

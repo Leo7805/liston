@@ -2,8 +2,8 @@ import { SentenceGroupSelector } from '@/features/sentences/components/SentenceG
 import { HeaderContainer } from '@/global/components/HeaderContainer';
 import { SentenceSearchButton } from '@/global/components/SentenceSearchButton';
 import { AddSentenceButton } from '@/features/sentences/components/AddSentenceButton';
-import { PlaylistMoreMenuButton } from '@/features/playlists/components/PlaylistMoreMenuButton';
 import { useUiStore } from '@/global/stores/ui.store';
+import { SentenceOverflowMenu } from './SentenceOverflowMenu';
 
 /**
  * Header bar of sentences page
@@ -23,7 +23,7 @@ export function SentencesHeader() {
       {/* Open Sentence Editor Button */}
       <AddSentenceButton />
 
-      <PlaylistMoreMenuButton />
+      <SentenceOverflowMenu />
     </HeaderContainer>
   );
 }

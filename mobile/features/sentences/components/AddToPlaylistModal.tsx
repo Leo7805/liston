@@ -1,0 +1,57 @@
+import { useState } from 'react';
+import { View, Text } from 'react-native';
+import { DEFAULT_PLAYLIST_ID } from '@/features/playlists/playlist.service';
+import { useSentenceSelectionStore } from '@/features/sentences/sentenceSelection.store';
+import { usePlaylistStore } from '@/features/playlists/playlist.store';
+import { ItemDropdown } from '@/global/components/ItemDropdown';
+import { AppModal } from '@/global/components/AppModal';
+
+export function AddToPlaylistModal() {
+  const [playlistId, setPlaylistId] = useState(DEFAULT_PLAYLIST_ID); // State to track the selected playlist ID in the editor
+
+  const playlists = usePlaylistStore((s) => s.playlists);
+  const { addSentencesToPlaylist } = usePlaylistStore.getState();
+
+  const selectedSentenceIds = useSentenceSelectionStore(
+    (s) => s.selectedSentenceIds
+  );
+
+  const { closeAddToPlaylistModal } = useSentenceSelectionStore.getState();
+
+  const displayedPlaylists = playlists.map((playlist) => ({
+    label: playlist.name,
+    value: playlist.id,
+  }));
+
+  /** Add/update a new sentence to sentence list & storageASync */
+  async function handleAdd() {
+    addSentencesToPlaylist(selectedSentenceIds, playlistId);
+    useSentenceSelectionStore.getState().clearSentenceSelection(); // Exit selection mode after moving sentences
+    closeAddToPlaylistModal();
+  }
+
+  /* Cancel editing, reset form and hide */
+  function handleCancel() {
+    useSentenceSelectionStore.getState().clearSentenceSelection(); // Exit selection mode after moving sentences
+    closeAddToPlaylistModal(); // close the editor modal
+  }
+
+  return (
+    <AppModal
+      title="Add to Playlist"
+      onClose={handleCancel}
+      onConfirm={handleAdd}
+      confirmText="Add"
+    >
+      <View className="mt-5 flex-row items-center gap-4">
+        <Text className="text-lg font-semibold text-slate-950">Playlist</Text>
+
+        <ItemDropdown
+          data={displayedPlaylists}
+          value={playlistId}
+          onChange={setPlaylistId}
+        />
+      </View>
+    </AppModal>
+  );
+}

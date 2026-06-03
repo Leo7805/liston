@@ -1,5 +1,5 @@
 import { usePlaylistStore } from '@/features/playlists/playlist.store';
-import { HeaderDropdown } from '@/global/components/HeaderDropdown';
+import { ItemDropdown } from '@/global/components/ItemDropdown';
 
 export function PlaylistSelector() {
   const playlists = usePlaylistStore((s) => s.playlists);
@@ -14,10 +14,10 @@ export function PlaylistSelector() {
   ];
 
   return (
-    <HeaderDropdown
+    <ItemDropdown
       data={dummyPlaylists}
       value={currentPlaylistId}
-      onChange={(value) => setCurrentPlaylistId(value)}
+      onChange={setCurrentPlaylistId}
     />
   );
 }
