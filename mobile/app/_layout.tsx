@@ -14,16 +14,16 @@ export const unstable_settings = {
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#34d399' }}>
-      <ActionSheetProvider>
-        <MenuProvider>
-          <ThemeProvider value={DefaultTheme}>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            </Stack>
-            <StatusBar style="auto" />
-          </ThemeProvider>
-        </MenuProvider>
-      </ActionSheetProvider>
+      {/* <ActionSheetProvider> */}
+      <MenuProvider>
+        <ThemeProvider value={DefaultTheme}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </MenuProvider>
+      {/* </ActionSheetProvider> */}
     </GestureHandlerRootView>
   );
 }

@@ -1,5 +1,6 @@
 import { useSentenceStore } from '@/features/sentences/sentence.store';
 import { usePlaylistStore } from '@/features/playlists/playlist.store';
+import { useSentenceSelectionStore } from './sentenceSelection.store';
 
 /**
  * Sentence playlist actions (add/remove sentences to/from playlist)
@@ -20,6 +21,9 @@ export function deleteSentencesEverywhere(sentenceIds: string[]) {
   usePlaylistStore
     .getState()
     .removeSentencesFromAllPlaylists(sentenceIds, sentences);
+
+  // Clear any selected sentences in the sentence selection store
+  useSentenceSelectionStore.getState().clearSentenceSelection();
 }
 
 /**

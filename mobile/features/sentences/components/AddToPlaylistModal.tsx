@@ -6,9 +6,13 @@ import { usePlaylistStore } from '@/features/playlists/playlist.store';
 import { ItemDropdown } from '@/global/components/ItemDropdown';
 import { AppModal } from '@/global/components/AppModal';
 import { addSentencesToPlaylist } from '@/features/sentences/sentencePlaylist.actions';
+import { router, useLocalSearchParams } from 'expo-router';
 
 export function AddToPlaylistModal() {
-  const [playlistId, setPlaylistId] = useState(DEFAULT_PLAYLIST_ID); // State to track the selected playlist ID in the editor
+  const { currentPlaylistId } = usePlaylistStore.getState(); // Get the current playlist ID from the playlist store
+  const [playlistId, setPlaylistId] = useState(
+    currentPlaylistId || DEFAULT_PLAYLIST_ID
+  );
 
   const playlists = usePlaylistStore((s) => s.playlists);
 
@@ -28,6 +32,17 @@ export function AddToPlaylistModal() {
     addSentencesToPlaylist(selectedSentenceIds, playlistId);
     useSentenceSelectionStore.getState().clearSentenceSelection(); // Exit selection mode after moving sentences
     closeAddToPlaylistModal();
+
+    const { isSelectionModeForPlaylist, clearSelectionModeForPlaylist } =
+      useSentenceSelectionStore.getState();
+
+    /** Jump back to playlist tab */
+    if (isSelectionModeForPlaylist) {
+      clearSelectionModeForPlaylist();
+      router.back();
+    }
+
+    usePlaylistStore.getState().selectPlaylist(playlistId);
   }
 
   /* Cancel editing, reset form and hide */

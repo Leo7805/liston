@@ -19,20 +19,12 @@ type LibrarySentenceRowProps = {
   sentence: SentenceItem;
   currentOpenSwipeId: string | null;
   onSwipeOpen: () => void;
-  // isSelected: boolean;
-  // isSelectionMode: boolean;
-  // onPress: () => void;
-  // onLongPress: () => void;
 };
 
 export function LibrarySentenceRow({
   sentence,
   currentOpenSwipeId,
   onSwipeOpen,
-  // isSelected,
-  // isSelectionMode,
-  // onPress,
-  // onLongPress,
 }: LibrarySentenceRowProps) {
   /** Guard against repeated deletions */
   const [isDeleting, setIsDeleting] = useState(false); // State to track if the sentence is being deleted

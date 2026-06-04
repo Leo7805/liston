@@ -15,11 +15,13 @@ type OverflowMenuProps = {
     content: React.ReactNode;
     disabled?: boolean;
   }[];
+  menuDisabled?: boolean; // Optional prop to disable the entire menu when true
   separatorIndexes?: number[]; // Optional indexes where separators should be rendered under options of these indices
 };
 
 const optionsStyle = {
   optionsContainer: {
+    marginTop: 30,
     paddingVertical: 4,
     paddingHorizontal: 3,
     borderRadius: 8,
@@ -41,16 +43,17 @@ const optionStyle = {
 
 export function OverflowMenu({
   items,
+  menuDisabled = false,
   separatorIndexes = [],
 }: OverflowMenuProps) {
   return (
     <Menu>
-      <MenuTrigger>
+      <MenuTrigger disabled={menuDisabled}>
         <Ionicons
           name="ellipsis-vertical"
           size={22}
-          color="#334155"
-          className="border-xl"
+          color={menuDisabled ? '#94a3b8' : '#334155'}
+          // className="border-xl"
         />
       </MenuTrigger>
 

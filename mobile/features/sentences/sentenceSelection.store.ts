@@ -19,6 +19,11 @@ type SentenceSelectionState = {
   closeMoveToGroupModal: () => void; // Close the "Move to Group" modal
   openAddToPlaylistModal: () => void; // Open the "Add to Playlist" modal
   closeAddToPlaylistModal: () => void; // Close the "Add to Playlist" modal
+
+  /* Selection Mode for Playlist Actions: This is a special mode that is activated when the user initiates an "Add to Playlist" action from a playlist. */
+  isSelectionModeForPlaylist: boolean;
+  startSelectionModeForPlaylist: () => void; // Start the playlist selection mode
+  clearSelectionModeForPlaylist: () => void; // Clear the playlist selection mode (can be called when exiting selection mode or after completing playlist actions)
 };
 
 export const useSentenceSelectionStore = create<SentenceSelectionState>(
@@ -27,6 +32,7 @@ export const useSentenceSelectionStore = create<SentenceSelectionState>(
     isSelectionMode: false,
     showMoveToGroupModal: false,
     showAddToPlaylistModal: false,
+    isSelectionModeForPlaylist: false,
 
     toggleSentenceSelection: (sentenceId: string) =>
       set((state) => {
@@ -82,5 +88,15 @@ export const useSentenceSelectionStore = create<SentenceSelectionState>(
     openAddToPlaylistModal: () => set({ showAddToPlaylistModal: true }),
 
     closeAddToPlaylistModal: () => set({ showAddToPlaylistModal: false }),
+
+    startSelectionModeForPlaylist: () =>
+      set({ isSelectionModeForPlaylist: true, isSelectionMode: true }), // Start playlist selection mode and enter selection mode
+
+    clearSelectionModeForPlaylist: () =>
+      set({
+        isSelectionModeForPlaylist: false,
+        isSelectionMode: false,
+        selectedSentenceIds: [],
+      }), // Clear playlist selection mode and exit selection mode
   })
 );

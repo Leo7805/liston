@@ -1,8 +1,10 @@
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Text } from 'react-native';
 import { OverflowMenu } from '@/global/components/OverflowMenu';
 import { DEFAULT_PLAYLIST_ID } from '@/features/playlists/playlist.service';
 import { usePlaylistStore } from '@/features/playlists/playlist.store';
+import { useSentenceSelectionStore } from '@/features/sentences/sentenceSelection.store';
 
 /** Used to define menu items with a key and text */
 type KeyAndText = {
@@ -40,12 +42,18 @@ export function PlaylistOverflowMenu() {
 
   const disableDeletePlaylist = disableRenamePlaylist || !isItemEmpty; // Disable if no playlist is selected (null means "All sentences") or if the playlist is empty
 
+  function handleAddToPlayList() {
+    router.push('/sentences'); // Jump to sentences page to select sentences to add to playlist
+
+    useSentenceSelectionStore.getState().startSelectionModeForPlaylist(); // Enter selection mode
+  }
+
   const menuItems = [
     // option 0: Add sentences to playlist
     {
       key: menuKeyAndText[0].key,
       // onSelect: openCreatePlaylistModal,
-      onSelect: () => console.log('Create Playlist'),
+      onSelect: handleAddToPlayList,
       content: (
         <View className="flex-row items-center px-3 py-2">
           <Ionicons

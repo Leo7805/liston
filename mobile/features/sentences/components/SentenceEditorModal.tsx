@@ -14,7 +14,11 @@ export function SentenceEditorModal() {
   const [translation, setTranslation] = useState('');
 
   const currentGroupId = useSentenceStore((s) => s.currentGroupId);
-  const [groupId, setGroupId] = useState(currentGroupId); // State to track the selected group ID in the editor
+
+  /** Note: If currentGroupId is null (means all groups selected), the default add-to group would be DEFAULT_GROUP_ID */
+  const [groupId, setGroupId] = useState<string>(
+    currentGroupId ?? DEFAULT_GROUP_ID
+  ); // State to track the selected group ID in the editor
 
   const editingSentenceId = useUiStore((s) => s.editingSentenceId);
   const { setEditingSentenceId, closeSentenceEditor } = useUiStore.getState();
@@ -53,10 +57,7 @@ export function SentenceEditorModal() {
     const normalizedOriginal = normalizeText(original);
     const normalizedTranslation = normalizeText(translation);
 
-    /** Defensive programming: Check if group ID is null (All Groups) */
-    if (groupId === null) {
-      return console.error('Group ID cannot be null when saving a sentence');
-    }
+    // Note:
 
     // If editing, update the existing sentence
     if (editingSentenceId) {
@@ -64,14 +65,14 @@ export function SentenceEditorModal() {
         sentenceId: editingSentenceId,
         original: normalizedOriginal,
         translation: normalizedTranslation,
-        groupId: groupId, // Use the selected group ID
+        groupId,
       });
     } else {
       // If adding new, create a new sentence item and add to storage
       addSentence({
         original: normalizedOriginal,
         translation: normalizedTranslation,
-        groupId: groupId, // Use the selected group ID
+        groupId,
       });
     }
 
@@ -129,7 +130,7 @@ export function SentenceEditorModal() {
 
         <ItemDropdown
           data={displayedGroups}
-          value={groupId ?? DEFAULT_GROUP_ID}
+          value={groupId}
           onChange={setGroupId}
         />
       </View>
