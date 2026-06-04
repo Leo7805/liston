@@ -1,4 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Fragment } from 'react';
+import { View } from 'react-native';
 import {
   Menu,
   MenuOptions,
@@ -13,6 +15,7 @@ type OverflowMenuProps = {
     content: React.ReactNode;
     disabled?: boolean;
   }[];
+  separatorIndexes?: number[]; // Optional indexes where separators should be rendered under options of these indices
 };
 
 const optionsStyle = {
@@ -36,7 +39,10 @@ const optionStyle = {
   },
 };
 
-export function OverflowMenu({ items }: OverflowMenuProps) {
+export function OverflowMenu({
+  items,
+  separatorIndexes = [],
+}: OverflowMenuProps) {
   return (
     <Menu>
       <MenuTrigger>
@@ -50,14 +56,20 @@ export function OverflowMenu({ items }: OverflowMenuProps) {
 
       <MenuOptions customStyles={optionsStyle}>
         {items.map((item, index) => (
-          <MenuOption
-            key={item.key}
-            onSelect={item.onSelect}
-            customStyles={optionStyle}
-            disabled={item.disabled ?? false}
-          >
-            {item.content}
-          </MenuOption>
+          <Fragment key={item.key}>
+            <MenuOption
+              onSelect={item.onSelect}
+              customStyles={optionStyle}
+              disabled={item.disabled ?? false}
+            >
+              {item.content}
+            </MenuOption>
+
+            {/* Separator */}
+            {separatorIndexes.includes(index) && (
+              <View className="h-px bg-slate-400 mx-3" />
+            )}
+          </Fragment>
         ))}
       </MenuOptions>
     </Menu>

@@ -1,23 +1,47 @@
 import { usePlaylistStore } from '@/features/playlists/playlist.store';
 import { ItemDropdown } from '@/global/components/ItemDropdown';
+import { useMemo } from 'react';
+
+const ALL_PLAYLISTS_ID = '__all__';
 
 export function PlaylistSelector() {
-  const playlists = usePlaylistStore((s) => s.playlists);
   const currentPlaylistId = usePlaylistStore((s) => s.currentPlaylistId);
-  const { setCurrentPlaylistId } = usePlaylistStore.getState();
+  const playlists = usePlaylistStore((s) => s.playlists);
+  const { selectPlaylist } = usePlaylistStore.getState();
 
-  const dummyPlaylists = [
-    { label: 'Default', value: '1' },
-    { label: 'IELTS', value: '2' },
-    { label: 'Job Interview', value: 'default' },
-    { label: 'Daily Listening', value: '4' },
-  ];
+  /** Calculate the number of sentences in all playlists */
+  const totalSentences = useMemo(() => {
+    return playlists.reduce((acc, playlist) => acc + playlist.items.length, 0);
+  }, [playlists]);
+
+  const displayedPlaylists = useMemo(
+    () => [
+      {
+        label: `All Playlists (${totalSentences})`,
+        value: ALL_PLAYLISTS_ID,
+      },
+      ...playlists.map((p) => ({
+        label: `${p.name} (${p.items.length})`,
+        value: p.id,
+      })),
+    ],
+    [playlists, totalSentences]
+  );
+
+  function handleChange(value: string | null) {
+    if (value === ALL_PLAYLISTS_ID) {
+      selectPlaylist(null);
+      return;
+    }
+
+    selectPlaylist(value);
+  }
 
   return (
     <ItemDropdown
-      data={dummyPlaylists}
-      value={currentPlaylistId}
-      onChange={setCurrentPlaylistId}
+      data={displayedPlaylists}
+      value={currentPlaylistId ?? ALL_PLAYLISTS_ID}
+      onChange={handleChange}
     />
   );
 }

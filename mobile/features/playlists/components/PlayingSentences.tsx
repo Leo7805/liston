@@ -1,9 +1,12 @@
 import { useEffect, useMemo } from 'react';
 import { FlatList, View, Text, TouchableOpacity } from 'react-native';
 import { usePlayerStore } from '@/features/player/player.store';
-import { usePlaylistStore } from '../playlist.store';
+import { usePlaylistStore } from '@/features/playlists/playlist.store';
 import { useSentenceStore } from '@/features/sentences/sentence.store';
 import { getItemById } from '@/global/utils/helpers';
+import { useUiStore } from '@/global/stores/ui.store';
+import { normalizeText } from '@/global/utils/text';
+import { PlaylistItem } from '@/features/playlists/playlist.types';
 
 /**
  * Playing sentences list
@@ -11,9 +14,10 @@ import { getItemById } from '@/global/utils/helpers';
 
 export function PlayingSentences() {
   const currentPlaylistId = usePlaylistStore((s) => s.currentPlaylistId); // Current playlist ID
-  const playlistItemId = usePlayerStore((s) => s.playlistItemId); // Currently playing playlist item ID
+  const currentPlaylistItemId = usePlayerStore((s) => s.playlistItemId); // Currently playing playlist item ID
   const playlists = usePlaylistStore((s) => s.playlists); // All playlists
   const sentences = useSentenceStore((s) => s.sentences); // All sentences
+  const sentenceSearchText = useUiStore((s) => s.sentenceSearchText); // Search keyword for sentences
 
   const { play } = usePlayerStore.getState();
 
@@ -29,26 +33,46 @@ export function PlayingSentences() {
   }, [currentPlaylistId]);
 
   /** Get current playlist items (not the sentences) */
-  const currentPlaylistItems = useMemo(() => {
-    const currentPlaylist = playlists.find((p) => p.id === currentPlaylistId);
-    return currentPlaylist ? currentPlaylist.items : [];
+  const displayedPlaylistItems = useMemo(() => {
+    return currentPlaylistId === null
+      ? playlists.map((p) => p.items).flat() // If no playlist is selected, show all sentences from all playlists
+      : (playlists.find((p) => p.id === currentPlaylistId)?.items ?? []); // Otherwise, show sentences from the selected playlist
   }, [playlists, currentPlaylistId]);
 
   /** Get the list of sentences in the currently playing playlist */
-  // const playingSentences: SentenceItem[] = useMemo(() => {
-  //   const currentPlaylist =
-  //     playlists.find((p) => p.id === currentPlaylistId) ?? null;
+  // const playingSentences: PlaylistItem[] = useMemo(() => {
+  //   const currentPlaylist = playlists.find((p) => p.id === currentPlaylistId);
 
-  //   if (!currentPlaylist) return [];
+  //   return currentPlaylist ? currentPlaylist.items : [];
+  // }, [playlists, currentPlaylistId]);
 
-  //   const sentenceIds = currentPlaylist.items.map((item) => item.sentenceId);
+  /** Filter the sentences based on the current playlist items and search keyword */
+  const filteredPlaylistItems = useMemo(() => {
+    const keyword = normalizeText(sentenceSearchText).toLocaleLowerCase();
 
-  //   return sentences.filter((s) => sentenceIds.includes(s.id));
-  // }, [playlists, sentences, currentPlaylistId]);
+    const filteredItems = displayedPlaylistItems.filter((item) => {
+      const sentence = sentences.find((s) => s.id === item.sentenceId);
+      if (!sentence) return false;
+
+      const normalizedOriginal = normalizeText(
+        sentence.original
+      ).toLocaleLowerCase();
+      const normalizedTranslation = normalizeText(
+        sentence.translation ?? ''
+      ).toLocaleLowerCase();
+
+      return (
+        normalizedOriginal.includes(keyword) ||
+        normalizedTranslation.includes(keyword)
+      );
+    });
+
+    return filteredItems;
+  }, [sentenceSearchText, sentences, displayedPlaylistItems]);
 
   return (
     <FlatList
-      data={currentPlaylistItems}
+      data={filteredPlaylistItems}
       keyExtractor={(item) => item.id} // Use sentence ID as key
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
@@ -94,7 +118,7 @@ export function PlayingSentences() {
         // </TouchableOpacity>
 
         const sentence = getItemById(item.sentenceId, sentences);
-        const isCurrentlyPlaying = playlistItemId === item.id;
+        const isCurrentlyPlaying = currentPlaylistItemId === item.id;
 
         return (
           <TouchableOpacity

@@ -5,7 +5,6 @@ import { SentenceItem, SentenceGroup } from './sentence.types';
 import * as sentenceService from './sentence.service';
 import { handleError } from '@/global/utils/helpers';
 import { validateId } from '@/global/utils/validation';
-import { usePlaylistStore } from '@/features/playlists/playlist.store';
 
 type AddSentenceInputType = Omit<sentenceService.CreateSentenceInput, 'groups'>;
 
@@ -20,33 +19,61 @@ type SentenceState = {
   currentGroupId: string | null; // ID of the currently selected group (not playing Item)
 
   /**
-   * Add a new sentence to the store. This function takes an input object containing the original and translation text, as well as an optional groupId to specify which group the sentence belongs to. If groupId is not provided, the sentence will be added to the default group. The function creates a new SentenceItem using the createSentenceItem factory function and adds it to the sentences array in the store. It also sets the currentGroupId to the group of the newly added sentence.
+   * Add a new sentence to the sentence library. The sentence will be added to the specified group or the default group if no groupId is provided.
    * @param input An object containing the original text, translation text, and an optional groupId for the new sentence.
+   * @return void
    */
   addSentence: (input: AddSentenceInputType) => void;
 
   /**
-   * Updates an existing sentence in the store. This function takes an input object containing the updated original and translation text, as well as the ID of the sentence to update. The function validates the input and updates the sentence in the sentences array in the store.
+   * Updates an existing sentence in the sentence library.
    * @param input An object containing the updated original text, translation text, and the ID of the sentence to update.
+   * @return void
    */
   updateSentence: (input: UpdateSentenceInputType) => void;
 
   /**
-   * Deletes sentences from the store. This function takes the IDs of the sentences to delete and removes them from the sentences array in the store. It also removes the sentences from any playlists they belong to and updates the groups & playlists accordingly.
+   * Deletes sentences from the sentence library only. It will not delete the sentences from any playlists they belong to.
    * @param sentenceIds The IDs of the sentences to delete.
+   * @return void
    */
-  deleteSentences: (sentenceIds: string[]) => void;
+  deleteSentencesFromLibrary: (sentenceIds: string[]) => void;
 
   /**
    * Move multiple sentences to a different group
    * @param sentenceIds The IDs of the sentences to move
    * @param targetGroupId The ID of the group to move the sentences to
+   * @return void
    */
   moveSentences: (sentenceIds: string[], targetGroupId: string) => void;
 
+  /**
+   * Select a sentence group to view. Passing null will select the "All Groups" view which shows sentences from all groups.
+   * @param groupId The ID of the group to select
+   * @return void
+   */
   selectGroup: (groupId: string | null) => void;
+
+  /**
+   * Delete a sentence group if it's empty and not the default group.
+   * @param groupId The ID of the group to delete
+   * @return void
+   */
   deleteGroup: (groupId: string) => void;
+
+  /**
+   * Create a new sentence group with the given name if it's not the default group, it will check if the name is valid and not already taken by another group
+   * @param name The name of the new group
+   * @return void
+   */
   createGroup: (name: string) => void;
+
+  /**
+   * Rename a sentence group if it's not the default group, it will check if the new name is valid and not already taken by another group
+   * @param groupId The ID of the group to rename
+   * @param newName The new name for the group
+   * @returns void
+   */
   renameGroup: (groupId: string, newName: string) => void;
 };
 
@@ -98,18 +125,13 @@ export const useSentenceStore = create<SentenceState>()(
           }
         },
 
-        deleteSentences: (sentenceIds: string[]) => {
+        deleteSentencesFromLibrary: (sentenceIds: string[]) => {
           try {
             const { sentences, groups } = get();
 
             // Remove the sentences from the store and get the updated sentences and groups after deletion
             const { sentences: updatedSentences, groups: updatedGroups } =
               sentenceService.deleteSentences(sentenceIds, sentences, groups);
-
-            // Also remove the sentences from any playlists it belongs to
-            usePlaylistStore
-              .getState()
-              .removeSentencesFromAllPlaylists(sentenceIds, sentences);
 
             set({
               sentences: updatedSentences,

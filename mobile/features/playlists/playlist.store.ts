@@ -3,27 +3,59 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Playlist } from '@/features/playlists/playlist.types';
 import * as playlistService from '@/features/playlists/playlist.service';
-import { useSentenceStore } from '@/features/sentences/sentence.store';
 import { validateId } from '@/global/utils/validation';
 import { handleError } from '@/global/utils/helpers';
 import { SentenceItem } from '@/features/sentences/sentence.types';
 
 type PlaylistState = {
   playlists: Playlist[]; // List of all playlists
-  currentPlaylistId: string; // ID of the currently selected playlist
+  currentPlaylistId: string | null; // ID of the currently selected playlist
 
-  setPlaylists: (playlists: Playlist[]) => void; // Set the entire list of playlists (used for initialization and updates)
+  /**
+   * Set the entire list of playlists (used for initialization and updates)
+   * @param playlists
+   */
+  setPlaylists: (playlists: Playlist[]) => void;
 
-  setCurrentPlaylistId: (playlistId: string) => void; // Select a playlist by its ID
+  /**
+   * Select a playlist by its ID. This will update the currentPlaylistId in the state
+   * @param playlistId
+   * @returns
+   */
+  selectPlaylist: (playlistId: string | null) => void;
+
   createPlaylist: (name: string) => void;
   renameCurrentPlaylist: (newName: string) => void;
   deleteCurrentPlaylist: () => void;
-  addSentencesToCurrentPlaylist: (sentenceIds: string[]) => void;
+  // addSentencesToCurrentPlaylist: (
+  //   sentenceIds: string[],
+  //   sentences: SentenceItem[]
+  // ) => void;
   addSentencesToPlaylist: (
     sentenceIds: string[],
-    targetPlaylistId: string
+    targetPlaylistId: string,
+    sentences: SentenceItem[]
   ) => void;
-  removeSentencesFromCurrentPlaylist: (sentenceIds: string[]) => void;
+
+  /**
+   * Remove sentences from a playlist by their IDs. It will not delete the sentences from the sentence library, only from the specified playlist.
+   * @param sentenceIds The IDs of the sentences to remove from the playlist
+   * @param targetPlaylistId  The ID of the playlist to remove the sentences from
+   * @param sentences  List of all sentences for validation
+   * @returns
+   */
+  removeSentencesFromPlaylist: (
+    sentenceIds: string[],
+    targetPlaylistId: string,
+    sentences: SentenceItem[]
+  ) => void;
+
+  /**
+   * Remove sentences from all playlists. This is used when sentences are deleted from the sentence store, to ensure that they are also removed from any playlists they belong to. The function takes the IDs of the sentences to remove and updates all playlists accordingly.
+   * @param sentenceIds  IDs of the sentences to remove from all playlists
+   * @param sentences  List of all sentences for validation
+   * @returns
+   */
   removeSentencesFromAllPlaylists: (
     sentenceIds: string[],
     sentences: SentenceItem[]
@@ -43,9 +75,11 @@ export const usePlaylistStore = create<PlaylistState>()(
           set({ playlists });
         },
 
-        setCurrentPlaylistId: (playlistId: string) => {
+        selectPlaylist: (playlistId: string | null) => {
           try {
-            validateId(playlistId, get().playlists);
+            if (playlistId) {
+              validateId(playlistId, get().playlists);
+            }
 
             set({ currentPlaylistId: playlistId });
           } catch (error) {
@@ -72,6 +106,10 @@ export const usePlaylistStore = create<PlaylistState>()(
           try {
             const { playlists, currentPlaylistId } = get();
 
+            if (!currentPlaylistId) {
+              throw new Error('No playlist selected to rename');
+            }
+
             const updatedPlaylists = playlistService.renamePlaylist(
               currentPlaylistId,
               newName,
@@ -90,6 +128,10 @@ export const usePlaylistStore = create<PlaylistState>()(
           try {
             const { playlists, currentPlaylistId } = get();
 
+            if (!currentPlaylistId) {
+              throw new Error('No playlist selected to delete');
+            }
+
             const updatedPlaylists = playlistService.deletePlaylist(
               currentPlaylistId,
               playlists
@@ -104,31 +146,37 @@ export const usePlaylistStore = create<PlaylistState>()(
           }
         },
 
-        addSentencesToCurrentPlaylist: (sentenceIds: string[]) => {
-          try {
-            const { playlists, currentPlaylistId } = get();
-            const { sentences } = useSentenceStore.getState(); // Get the list of sentences for validation
+        // addSentencesToCurrentPlaylist: (
+        //   sentenceIds: string[],
+        //   sentences: SentenceItem[]
+        // ) => {
+        //   try {
+        //     const { playlists, currentPlaylistId } = get();
 
-            const updatedPlaylists = playlistService.addSentencesToPlaylist(
-              sentenceIds,
-              currentPlaylistId,
-              sentences, // Pass the list of sentences for validation
-              playlists
-            );
+        //     if (!currentPlaylistId) {
+        //       throw new Error('No playlist selected to add sentences to');
+        //     }
 
-            set({ playlists: updatedPlaylists });
-          } catch (error) {
-            handleError(error);
-          }
-        },
+        //     const updatedPlaylists = playlistService.addSentencesToPlaylist(
+        //       sentenceIds,
+        //       currentPlaylistId,
+        //       sentences, // Pass the list of sentences for validation
+        //       playlists
+        //     );
+
+        //     set({ playlists: updatedPlaylists });
+        //   } catch (error) {
+        //     handleError(error);
+        //   }
+        // },
 
         addSentencesToPlaylist: (
           sentenceIds: string[],
-          targetPlaylistId: string
+          targetPlaylistId: string,
+          sentences: SentenceItem[]
         ) => {
           try {
             const { playlists } = get();
-            const { sentences } = useSentenceStore.getState(); // Get the list of sentences for validation
 
             const updatedPlaylists = playlistService.addSentencesToPlaylist(
               sentenceIds,
@@ -143,16 +191,22 @@ export const usePlaylistStore = create<PlaylistState>()(
           }
         },
 
-        removeSentencesFromCurrentPlaylist: (sentenceIds: string[]) => {
+        removeSentencesFromPlaylist: (
+          sentenceIds: string[],
+          targetPlaylistId: string,
+          sentences: SentenceItem[]
+        ) => {
           try {
-            const { playlists, currentPlaylistId } = get();
+            const { playlists } = get();
 
-            const { sentences } = useSentenceStore.getState(); // Get the list of sentences for validation
+            if (!targetPlaylistId) {
+              throw new Error('No playlist selected to remove sentences from');
+            }
 
             const updatedPlaylists =
               playlistService.removeSentencesFromPlaylist(
                 sentenceIds,
-                currentPlaylistId,
+                targetPlaylistId,
                 sentences,
                 playlists
               );

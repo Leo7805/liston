@@ -7,8 +7,8 @@ import { useRef, useEffect, useState } from 'react';
 import { useUiStore } from '@/global/stores/ui.store';
 import { ActionButton } from '@/global/components/ActionButton';
 import { PressableView } from '@/global/components/PressableView';
-import { useSentenceStore } from '@/features/sentences/sentence.store';
 import { useSentenceSelectionStore } from '@/features/sentences/sentenceSelection.store';
+import { deleteSentencesEverywhere } from '@/features/sentences/sentencePlaylist.actions';
 
 /**
  * This component is responsible for displaying a single sentence row,
@@ -41,7 +41,6 @@ export function LibrarySentenceRow({
   const swipeableRef = useRef<SwipeableMethods>(null);
 
   const { setEditingSentenceId, openSentenceEditor } = useUiStore.getState();
-  const { deleteSentences } = useSentenceStore.getState();
 
   /** Get selection state from the sentence selection store */
   const isSelectionMode = useSentenceSelectionStore((s) => s.isSelectionMode);
@@ -82,7 +81,7 @@ export function LibrarySentenceRow({
     closeSwipeable();
 
     try {
-      deleteSentences([sentenceId]);
+      deleteSentencesEverywhere([sentenceId]);
     } finally {
       setIsDeleting(false);
     }

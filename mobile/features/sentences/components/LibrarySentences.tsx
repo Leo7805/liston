@@ -12,14 +12,21 @@ export function LibrarySentences() {
 
   const [openSwipeId, setOpenSwipeId] = useState<string | null>(null); // State to track the currently open swipeable item
 
+  /** Visible sentences for the current group */
+  const visibleSentences = useMemo(() => {
+    return currentGroupId === null
+      ? sentenceList
+      : sentenceList.filter((s) => s.groupId === currentGroupId);
+  }, [sentenceList, currentGroupId]);
+
   /** Filter sentences based on the current group selection and search keyword. */
   const filteredSentences = useMemo(() => {
     const keyword = normalizeText(sentenceSearchText).toLocaleLowerCase();
 
-    const visibleSentences =
-      currentGroupId === null
-        ? sentenceList // If no group is selected, show all sentences
-        : sentenceList.filter((s) => s.groupId === currentGroupId); // Otherwise, filter sentences by the selected group
+    // const visibleSentences =
+    //   currentGroupId === null
+    //     ? sentenceList // If no group is selected, show all sentences
+    //     : sentenceList.filter((s) => s.groupId === currentGroupId); // Otherwise, filter sentences by the selected group
 
     const filteredSentences = keyword
       ? visibleSentences.filter((s) => {
@@ -38,7 +45,7 @@ export function LibrarySentences() {
       : visibleSentences;
 
     return filteredSentences;
-  }, [sentenceList, currentGroupId, sentenceSearchText]);
+  }, [visibleSentences, sentenceSearchText]);
 
   /** Close any open swipeable items */
   function closeOpenSwipeables() {

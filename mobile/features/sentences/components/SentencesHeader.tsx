@@ -23,6 +23,7 @@ export function SentencesHeader() {
       {/* Open Sentence Editor Button */}
       <AddSentenceButton />
 
+      {/* Sentence item overflow menu */}
       <SentenceOverflowMenu />
     </HeaderContainer>
   );

@@ -53,6 +53,11 @@ export function SentenceEditorModal() {
     const normalizedOriginal = normalizeText(original);
     const normalizedTranslation = normalizeText(translation);
 
+    /** Defensive programming: Check if group ID is null (All Groups) */
+    if (groupId === null) {
+      return console.error('Group ID cannot be null when saving a sentence');
+    }
+
     // If editing, update the existing sentence
     if (editingSentenceId) {
       updateSentence({
@@ -124,7 +129,7 @@ export function SentenceEditorModal() {
 
         <ItemDropdown
           data={displayedGroups}
-          value={groupId}
+          value={groupId ?? DEFAULT_GROUP_ID}
           onChange={setGroupId}
         />
       </View>

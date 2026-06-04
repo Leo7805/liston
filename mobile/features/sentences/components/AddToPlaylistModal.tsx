@@ -5,12 +5,12 @@ import { useSentenceSelectionStore } from '@/features/sentences/sentenceSelectio
 import { usePlaylistStore } from '@/features/playlists/playlist.store';
 import { ItemDropdown } from '@/global/components/ItemDropdown';
 import { AppModal } from '@/global/components/AppModal';
+import { addSentencesToPlaylist } from '@/features/sentences/sentencePlaylist.actions';
 
 export function AddToPlaylistModal() {
   const [playlistId, setPlaylistId] = useState(DEFAULT_PLAYLIST_ID); // State to track the selected playlist ID in the editor
 
   const playlists = usePlaylistStore((s) => s.playlists);
-  const { addSentencesToPlaylist } = usePlaylistStore.getState();
 
   const selectedSentenceIds = useSentenceSelectionStore(
     (s) => s.selectedSentenceIds

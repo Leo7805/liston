@@ -5,6 +5,7 @@ import { useActionSheet } from '@expo/react-native-action-sheet';
 import { useSentenceSelectionStore } from '@/features/sentences/sentenceSelection.store';
 import { HeaderContainer } from '@/global/components/HeaderContainer';
 import { useSentenceStore } from '@/features/sentences/sentence.store';
+import { deleteSentencesEverywhere } from '@/features/sentences/sentencePlaylist.actions';
 
 type SelectAllState = 'all' | 'none' | 'partial';
 
@@ -12,7 +13,7 @@ export function SentenceSelectionHeader() {
   const selectedSentenceIds = useSentenceSelectionStore(
     (s) => s.selectedSentenceIds
   );
-  const { deleteSentences } = useSentenceStore.getState();
+  // const { deleteSentences } = useSentenceStore.getState();
 
   const isSelectionMode = useSentenceSelectionStore((s) => s.isSelectionMode);
   const {
@@ -51,7 +52,7 @@ export function SentenceSelectionHeader() {
         }
 
         if (buttonIndex === 1) {
-          deleteSentences(selectedSentenceIds);
+          deleteSentencesEverywhere(selectedSentenceIds);
         }
       }
     );
