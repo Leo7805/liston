@@ -49,7 +49,7 @@ export function PlaylistOverflowMenu() {
       content: (
         <View className="flex-row items-center px-3 py-2">
           <Ionicons
-            name="folder-open-outline"
+            name="add-circle-outline"
             size={20}
             color="#0284C7"
             className="mr-2"
@@ -90,7 +90,7 @@ export function PlaylistOverflowMenu() {
       content: (
         <View className="flex-row items-center px-3 py-2">
           <Ionicons
-            name="create-outline"
+            name="folder-open-outline"
             size={20}
             color="#0d9488"
             className="mr-2"
@@ -110,7 +110,7 @@ export function PlaylistOverflowMenu() {
           <Ionicons
             name="create-outline"
             size={20}
-            color={disableRenamePlaylist ? '#9ca3af' : '#0284C7'}
+            color={disableRenamePlaylist ? '#9ca3af' : '#0d9488'}
             className="mr-2"
           />
           <Text
