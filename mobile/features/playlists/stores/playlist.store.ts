@@ -51,6 +51,17 @@ type PlaylistState = {
   ) => void;
 
   /**
+   * Remove playlist items from target playlist. It will not delete the sentences from the sentence library, only from the specified playlist.
+   * @param playlistItemIds The IDs of the playlist items to remove from the playlist
+   * @param targetPlaylistId The ID of the playlist to remove the playlist items from
+   * @returns
+   */
+  removeItemsFromPlaylist: (
+    playlistItemIds: string[],
+    targetPlaylistId: string
+  ) => void;
+
+  /**
    * Remove sentences from all playlists. This is used when sentences are deleted from the sentence store, to ensure that they are also removed from any playlists they belong to. The function takes the IDs of the sentences to remove and updates all playlists accordingly.
    * @param sentenceIds  IDs of the sentences to remove from all playlists
    * @param sentences  List of all sentences for validation
@@ -230,6 +241,29 @@ export const usePlaylistStore = create<PlaylistState>()(
                 sentences,
                 playlists
               );
+
+            set({ playlists: updatedPlaylists });
+          } catch (error) {
+            handleError(error);
+          }
+        },
+
+        removeItemsFromPlaylist(
+          playlistItemIds: string[],
+          targetPlaylistId: string
+        ) {
+          try {
+            const { playlists } = get();
+
+            if (!targetPlaylistId) {
+              throw new Error('No playlist selected to remove items from');
+            }
+
+            const updatedPlaylists = playlistService.removeItemsFromPlaylist(
+              playlistItemIds,
+              targetPlaylistId,
+              playlists
+            );
 
             set({ playlists: updatedPlaylists });
           } catch (error) {

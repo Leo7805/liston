@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { t } from '@/global/i18n/t';
-import { useSentenceStore } from '@/features/sentences/sentence.store';
+import { useSentenceStore } from '@/features/sentences/stores/sentence.store';
 import { ItemDropdown } from '@/global/components/ItemDropdown';
 import { getSentenceCountByGroup } from '@/features/sentences/sentence.service';
 

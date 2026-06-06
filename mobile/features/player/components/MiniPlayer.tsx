@@ -11,8 +11,8 @@ import { BlurView } from 'expo-blur';
 import { usePlayingTextAnimation } from '@/features/player/usePlayingTextAnimation';
 import { usePlayerStore } from '@/features/player/player.store';
 import { useUiStore } from '@/global/stores/ui.store';
-import { usePlaylistStore } from '@/features/playlists/playlist.store';
-import { useSentenceStore } from '@/features/sentences/sentence.store';
+import { usePlaylistStore } from '@/features/playlists/stores/playlist.store';
+import { useSentenceStore } from '@/features/sentences/stores/sentence.store';
 
 /** Props for MiniPlayer component */
 type MiniPlayerProps = {

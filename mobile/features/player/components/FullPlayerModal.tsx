@@ -2,6 +2,7 @@ import { Modal, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useUiStore } from '@/global/stores/ui.store';
 import { usePlayerStore } from '@/features/player/player.store';
+import { getSentenceByPlaylistItemId } from '@/features/sentences/sentencePlaylist.actions';
 
 type FullPlayerModalProps = {
   onPrevious?: () => void;
@@ -10,7 +11,9 @@ type FullPlayerModalProps = {
 
 export function FullPlayerModal({ onPrevious, onNext }: FullPlayerModalProps) {
   const showFullPlayer = useUiStore((s) => s.showFullPlayer);
-  const sentence = usePlayerStore((s) => s.playingItem);
+  const sentence = getSentenceByPlaylistItemId(
+    usePlayerStore((s) => s.playlistItemId)
+  ); // Get the currently playing sentence based on the playlist item ID
   const isPlaying = usePlayerStore((s) => s.isPlaying);
 
   function handleClose() {

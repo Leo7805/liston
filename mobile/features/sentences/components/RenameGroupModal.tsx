@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppModal } from '@/global/components/AppModal';
 import { useUiStore } from '@/global/stores/ui.store';
 import { useRef, useState } from 'react';
-import { useSentenceStore } from '@/features/sentences/sentence.store';
+import { useSentenceStore } from '@/features/sentences/stores/sentence.store';
 import { DEFAULT_GROUP_ID } from '@/features/sentences/sentence.service';
 
 export function RenameGroupModal() {

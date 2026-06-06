@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { View, Text } from 'react-native';
 import { OverflowMenu } from '@/global/components/OverflowMenu';
-import { useSentenceSelectionStore } from '@/features/sentences/sentenceSelection.store';
+import { useSentenceSelectionStore } from '@/features/sentences/stores/sentenceSelection.store';
 import { deleteSentencesEverywhere } from '@/features/sentences/sentencePlaylist.actions';
 
 /** Used to define menu items with a key and text */
@@ -26,6 +26,8 @@ export function SentenceSelectionOverflowMenu() {
 
   function handleDeleteSentences() {
     deleteSentencesEverywhere(selectedSentenceIds);
+    // Clear any selected sentences in the sentence selection store
+    useSentenceSelectionStore.getState().clearSentenceSelection();
   }
 
   const menuItems = [
@@ -71,7 +73,7 @@ export function SentenceSelectionOverflowMenu() {
       content: (
         <View className="flex-row items-center px-3 py-2">
           <Ionicons
-            name="folder-open-outline"
+            name="trash-outline"
             size={20}
             color="#dc2626"
             className="mr-2"

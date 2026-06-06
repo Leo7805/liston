@@ -6,7 +6,7 @@ import { SentenceSearchHeader } from '@/global/components/SentenceSearchHeader';
 import { SentencesHeader } from '@/features/sentences/components/SentencesHeader';
 import { LibrarySentences } from '@/features/sentences/components/LibrarySentences';
 import { useUiStore } from '@/global/stores/ui.store';
-import { useSentenceSelectionStore } from '@/features/sentences/sentenceSelection.store';
+import { useSentenceSelectionStore } from '@/features/sentences/stores/sentenceSelection.store';
 import { SentenceSelectionHeader } from '@/features/sentences/components/SentenceSelectionHeader';
 import { MoveToGroupModal } from '@/features/sentences/components/MoveToGroupModal';
 import { AddToPlaylistModal } from '@/features/sentences/components/AddToPlaylistModal';

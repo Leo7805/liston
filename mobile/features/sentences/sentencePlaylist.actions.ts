@@ -1,6 +1,6 @@
-import { useSentenceStore } from '@/features/sentences/sentence.store';
-import { usePlaylistStore } from '@/features/playlists/playlist.store';
-import { useSentenceSelectionStore } from './sentenceSelection.store';
+import { useSentenceStore } from '@/features/sentences/stores/sentence.store';
+import { usePlaylistStore } from '@/features/playlists/stores/playlist.store';
+import { useSentenceSelectionStore } from '@/features/sentences/stores/sentenceSelection.store';
 
 /**
  * Sentence playlist actions (add/remove sentences to/from playlist)
@@ -21,9 +21,6 @@ export function deleteSentencesEverywhere(sentenceIds: string[]) {
   usePlaylistStore
     .getState()
     .removeSentencesFromAllPlaylists(sentenceIds, sentences);
-
-  // Clear any selected sentences in the sentence selection store
-  useSentenceSelectionStore.getState().clearSentenceSelection();
 }
 
 /**
@@ -56,4 +53,36 @@ export function removeSentencesFromPlaylist(
   usePlaylistStore
     .getState()
     .removeSentencesFromPlaylist(sentenceIds, targetPlaylistId, sentences);
+}
+
+/**
+ * Get sentenceId by playlist item ID.
+ * @param playlistItemId The ID of the playlist item to find the associated sentence ID for
+ * @returns The sentence ID associated with the given playlist item ID, or null if not found
+ */
+export function getSentenceIdByPlaylistItemId(playlistItemId: string | null) {
+  const playlists = usePlaylistStore.getState().playlists; // Get the list of playlists
+
+  for (const playlist of playlists) {
+    const foundItem = playlist.items.find((i) => i.id === playlistItemId);
+
+    if (foundItem) {
+      return foundItem.sentenceId;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Get sentence from playlist item ID. It will search through all playlists to find the sentence associated with the given playlist item ID.
+ * @param playlistItemId The ID of the playlist item to find the associated sentence for
+ * @returns The sentence associated with the given playlist item ID, or null if not found
+ */
+export function getSentenceByPlaylistItemId(playlistItemId: string | null) {
+  const sentences = useSentenceStore.getState().sentences; // Get the list of sentences
+
+  const sentenceId = getSentenceIdByPlaylistItemId(playlistItemId);
+
+  return sentences.find((s) => s.id === sentenceId) ?? null;
 }

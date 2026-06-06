@@ -2,7 +2,7 @@ import { OverflowMenu } from '@/global/components/OverflowMenu';
 import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useUiStore } from '@/global/stores/ui.store';
-import { useSentenceStore } from '@/features/sentences/sentence.store';
+import { useSentenceStore } from '@/features/sentences/stores/sentence.store';
 import { DEFAULT_GROUP_ID } from '@/features/sentences/sentence.service';
 
 export function SentenceOverflowMenu() {

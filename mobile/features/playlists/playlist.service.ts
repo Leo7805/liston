@@ -235,3 +235,45 @@ export function removeSentencesFromAllPlaylists(
     };
   });
 }
+
+/**
+ * Remove playlist items from playlist by filtering out the specified playlist item IDs from the playlist's items. The function validates that the playlist exists and that all playlist item IDs are valid before performing the remove operation.
+ * @param playlistItemIds The IDs of the playlist items to remove.
+ * @param targetPlaylistId The ID of the target playlist from which the playlist items will be removed.
+ * @param playlists List of existing playlists for validation and updating.
+ * @returns Updated list of playlists with the specified playlist items removed.
+ */
+export function removeItemsFromPlaylist(
+  playlistItemIds: string[],
+  targetPlaylistId: string,
+  playlists: Playlist[]
+): Playlist[] {
+  const targetPlaylist = getItemByIdOrThrow(targetPlaylistId, playlists);
+
+  // Filter out items that have an id in the list of playlistItemIds to remove
+  const updatedItems = targetPlaylist.items.filter(
+    (item) => !playlistItemIds.includes(item.id)
+  );
+
+  // If no items were removed, return the original playlists array
+  if (updatedItems.length === targetPlaylist.items.length) {
+    return playlists;
+  }
+
+  // New playlists array with the updated playlist containing the filtered items
+  const updatedPlaylists = playlists.map((playlist) =>
+    playlist.id === targetPlaylistId
+      ? {
+          ...playlist,
+          items: updatedItems,
+          updatedAt: Date.now(),
+        }
+      : playlist
+  );
+
+  return updatedPlaylists;
+}
+
+export function getAllPlaylistItems(playlists: Playlist[]) {
+  return playlists.map((p) => p.items).flat();
+}

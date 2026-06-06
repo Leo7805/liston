@@ -5,24 +5,37 @@ import { PlayingSentences } from '@/features/playlists/components/PlayingSentenc
 import { useUiStore } from '@/global/stores/ui.store';
 import { PlaylistHeader } from '@/features/playlists/components/PlaylistHeader';
 import { SentenceSearchHeader } from '@/global/components/SentenceSearchHeader';
+import { usePlaylistItemSelectionStore } from '@/features/playlists/stores/playlistItemSelection.store';
+import { PlaylistItemSelectionHeader } from '@/features/playlists/components/PlaylistItemSelectionHeader';
 
 export default function PlaylistScreen() {
   const isPlaylistSearching = useUiStore((s) => s.isSentenceSearching);
+  const isSelectionMode = usePlaylistItemSelectionStore(
+    (s) => s.isSelectionMode
+  );
   const { closeSentenceSearch } = useUiStore.getState();
+  const { exitSelectionMode } = usePlaylistItemSelectionStore.getState();
 
   useFocusEffect(
     useCallback(() => {
       return () => {
         // Clear search state when leaving the screen
         closeSentenceSearch();
+        exitSelectionMode();
       };
-    }, [closeSentenceSearch])
+    }, [closeSentenceSearch, exitSelectionMode])
   );
 
   return (
     <View className="flex-1 px-3">
       {/* Header */}
-      {isPlaylistSearching ? <SentenceSearchHeader /> : <PlaylistHeader />}
+      {isSelectionMode ? (
+        <PlaylistItemSelectionHeader />
+      ) : isPlaylistSearching ? (
+        <SentenceSearchHeader />
+      ) : (
+        <PlaylistHeader />
+      )}
 
       {/* Content */}
       <View className="flex-1">

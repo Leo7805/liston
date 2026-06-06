@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, TextInput } from 'react-native';
 import { useUiStore } from '@/global/stores/ui.store';
-import { useSentenceStore } from '@/features/sentences/sentence.store';
+import { useSentenceStore } from '@/features/sentences/stores/sentence.store';
 import { DEFAULT_GROUP_ID } from '@/features/sentences/sentence.service';
 import { normalizeText } from '@/global/utils/text';
 import { getItemByIdOrThrow } from '@/global/utils/helpers';

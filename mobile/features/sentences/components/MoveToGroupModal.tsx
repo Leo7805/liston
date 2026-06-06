@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text } from 'react-native';
-import { useSentenceStore } from '@/features/sentences/sentence.store';
-import { useSentenceSelectionStore } from '@/features/sentences/sentenceSelection.store';
+import { useSentenceStore } from '@/features/sentences/stores/sentence.store';
+import { useSentenceSelectionStore } from '@/features/sentences/stores/sentenceSelection.store';
 import { AppModal } from '@/global/components/AppModal';
 import { ItemDropdown } from '@/global/components/ItemDropdown';
 

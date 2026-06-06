@@ -1,8 +1,11 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SentenceItem, SentenceGroup } from './sentence.types';
-import * as sentenceService from './sentence.service';
+import {
+  SentenceItem,
+  SentenceGroup,
+} from '@/features/sentences/sentence.types';
+import * as sentenceService from '@/features/sentences/sentence.service';
 import { handleError } from '@/global/utils/helpers';
 import { validateId } from '@/global/utils/validation';
 

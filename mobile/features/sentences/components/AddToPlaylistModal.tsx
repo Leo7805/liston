@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { View, Text } from 'react-native';
 import { DEFAULT_PLAYLIST_ID } from '@/features/playlists/playlist.service';
-import { useSentenceSelectionStore } from '@/features/sentences/sentenceSelection.store';
-import { usePlaylistStore } from '@/features/playlists/playlist.store';
+import { useSentenceSelectionStore } from '@/features/sentences/stores/sentenceSelection.store';
+import { usePlaylistStore } from '@/features/playlists/stores/playlist.store';
 import { ItemDropdown } from '@/global/components/ItemDropdown';
 import { AppModal } from '@/global/components/AppModal';
 import { addSentencesToPlaylist } from '@/features/sentences/sentencePlaylist.actions';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 
 export function AddToPlaylistModal() {
   const { currentPlaylistId } = usePlaylistStore.getState(); // Get the current playlist ID from the playlist store

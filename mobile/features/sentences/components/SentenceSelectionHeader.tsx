@@ -1,14 +1,12 @@
 import { useMemo } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSentenceSelectionStore } from '@/features/sentences/sentenceSelection.store';
+import { useSentenceSelectionStore } from '@/features/sentences/stores/sentenceSelection.store';
 import { HeaderContainer } from '@/global/components/HeaderContainer';
-import { useSentenceStore } from '@/features/sentences/sentence.store';
+import { useSentenceStore } from '@/features/sentences/stores/sentence.store';
 import { SentenceSelectionOverflowMenu } from '@/features/sentences/components/SentenceSelectionOverflowMenu';
 import { SentenceGroupSelector } from './SentenceGroupSelector';
-
-/** Three-state selection status */
-type SelectAllState = 'all' | 'none' | 'partial';
+import { SelectAllCheckbox } from '@/global/components/SelectAllCheckbox';
 
 export function SentenceSelectionHeader() {
   const selectedSentenceIds = useSentenceSelectionStore(
@@ -27,25 +25,6 @@ export function SentenceSelectionHeader() {
       : sentenceList.filter((s) => s.groupId === currentGroupId);
   }, [currentGroupId, sentenceList]);
 
-  /* Determine the "Select All" icon state based on the number of selected sentences and visible sentences */
-  function getSelectAllIconState(): SelectAllState {
-    if (selectedSentenceIds.length === 0) return 'none';
-
-    if (selectedSentenceIds.length === visibleSentences.length) return 'all';
-
-    return 'partial';
-  }
-
-  /* Get the appropriate icon name for the "Select All" button based on the current selection state */
-  function getSelectAllIconName() {
-    const state = getSelectAllIconState();
-
-    if (state === 'all') return 'checkbox';
-    if (state === 'partial') return 'checkbox-outline';
-
-    return 'square-outline';
-  }
-
   function toggleSelectAll() {
     if (selectedSentenceIds.length === visibleSentences.length) {
       // If all sentences are currently selected, unselect all
@@ -63,23 +42,12 @@ export function SentenceSelectionHeader() {
 
       <View className="flex-1 flex-row items-center p-2">
         {/* Select All checkbox */}
-        <TouchableOpacity
-          onPress={toggleSelectAll}
-          className="h-10 flex-row items-center justify-center pl-2"
-        >
-          <Ionicons name={getSelectAllIconName()} size={23} color="#334155" />
-          <View className="flex-row items-center">
-            <Text className="text-zinc-700">Select All</Text>
-            <Text className=" text-slate-500 ml-1">
-              ({selectedSentenceIds.length})
-            </Text>
-          </View>
-        </TouchableOpacity>
+        <SelectAllCheckbox
+          selectedCount={selectedSentenceIds.length}
+          visibleCount={visibleSentences.length}
+          onToggle={toggleSelectAll}
+        />
       </View>
-
-      {/* Selection count */}
-      {/* <View className="flex-1 min-w-0 items-center justify-center">
-      </View> */}
 
       {/* More Actions */}
       <View className="w-20 flex-row justify-center">

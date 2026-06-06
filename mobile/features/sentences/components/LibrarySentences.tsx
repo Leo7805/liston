@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FlatList, View } from 'react-native';
-import { useSentenceStore } from '@/features/sentences/sentence.store';
+import { useSentenceStore } from '@/features/sentences/stores/sentence.store';
 import { LibrarySentenceRow } from '@/features/sentences/components/LibrarySentenceRow';
 import { useUiStore } from '@/global/stores/ui.store';
 import { normalizeText } from '@/global/utils/text';

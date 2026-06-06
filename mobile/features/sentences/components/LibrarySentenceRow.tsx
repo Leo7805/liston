@@ -7,7 +7,7 @@ import { useRef, useEffect, useState } from 'react';
 import { useUiStore } from '@/global/stores/ui.store';
 import { ActionButton } from '@/global/components/ActionButton';
 import { PressableView } from '@/global/components/PressableView';
-import { useSentenceSelectionStore } from '@/features/sentences/sentenceSelection.store';
+import { useSentenceSelectionStore } from '@/features/sentences/stores/sentenceSelection.store';
 import { deleteSentencesEverywhere } from '@/features/sentences/sentencePlaylist.actions';
 
 /**

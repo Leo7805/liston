@@ -3,7 +3,7 @@ import { View, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppModal } from '@/global/components/AppModal';
 import { useUiStore } from '@/global/stores/ui.store';
-import { useSentenceStore } from '@/features/sentences/sentence.store';
+import { useSentenceStore } from '@/features/sentences/stores/sentence.store';
 
 export function CreateGroupModal() {
   const [groupName, setGroupName] = useState('New Group 1');
