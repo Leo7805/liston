@@ -1,6 +1,6 @@
 import { usePlaylistStore } from '@/features/playlists/stores/playlist.store';
 import { ItemDropdown } from '@/global/components/ItemDropdown';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { usePlaylistItemSelectionStore } from '@/features/playlists/stores/playlistItemSelection.store';
 import { DEFAULT_PLAYLIST_ID } from '@/features/playlists/playlist.service';
 
@@ -40,6 +40,13 @@ export function PlaylistSelector() {
         ];
   }, [playlists, totalSentences, isSelectionMode]);
 
+  /** Do not show all playlists in selection mode */
+  useEffect(() => {
+    if (isSelectionMode && currentPlaylistId === null) {
+      selectPlaylist(DEFAULT_PLAYLIST_ID);
+    }
+  }, [currentPlaylistId, selectPlaylist, isSelectionMode]);
+
   function handleChange(value: string | null) {
     if (value === ALL_PLAYLISTS_ID) {
       selectPlaylist(null);
@@ -52,7 +59,7 @@ export function PlaylistSelector() {
   return (
     <ItemDropdown
       data={displayedPlaylists}
-      value={currentPlaylistId ?? DEFAULT_PLAYLIST_ID}
+      value={currentPlaylistId ?? ALL_PLAYLISTS_ID}
       onChange={handleChange}
     />
   );
