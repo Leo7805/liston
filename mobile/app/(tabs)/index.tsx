@@ -7,12 +7,18 @@ import { PlaylistHeader } from '@/features/playlists/components/PlaylistHeader';
 import { SentenceSearchHeader } from '@/global/components/SentenceSearchHeader';
 import { usePlaylistItemSelectionStore } from '@/features/playlists/stores/playlistItemSelection.store';
 import { PlaylistItemSelectionHeader } from '@/features/playlists/components/PlaylistItemSelectionHeader';
+import { CreatePlaylistModal } from '@/features/playlists/components/CreatePlaylistModal';
+import { RenamePlaylistModal } from '@/features/playlists/components/RenamePlaylistModal';
 
 export default function PlaylistScreen() {
   const isPlaylistSearching = useUiStore((s) => s.isSentenceSearching);
+  const showCreatePlaylistModal = useUiStore((s) => s.showCreatePlaylistModal);
+  const showRenamePlaylistModal = useUiStore((s) => s.showRenamePlaylistModal);
+
   const isSelectionMode = usePlaylistItemSelectionStore(
     (s) => s.isSelectionMode
   );
+
   const { closeSentenceSearch } = useUiStore.getState();
   const { exitSelectionMode } = usePlaylistItemSelectionStore.getState();
 
@@ -42,6 +48,12 @@ export default function PlaylistScreen() {
         {/* Currently playing Sentence list */}
         <PlayingSentences />
       </View>
+
+      {/* Create Playlist Modal */}
+      {showCreatePlaylistModal && <CreatePlaylistModal />}
+
+      {/* Rename Playlist Modal */}
+      {showRenamePlaylistModal && <RenamePlaylistModal />}
     </View>
   );
 }

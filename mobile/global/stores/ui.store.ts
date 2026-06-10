@@ -4,6 +4,8 @@ export type UIState = {
   showSentenceEditor: boolean;
   showCreateGroupModal: boolean;
   showRenameGroupModal: boolean;
+  showCreatePlaylistModal: boolean;
+  showRenamePlaylistModal: boolean;
   editingSentenceId: string | null; // The sentence currently being edited (null if adding new)
   showFullPlayer: boolean;
   isSentenceSearching: boolean;
@@ -19,6 +21,10 @@ export type UIState = {
   closeCreateGroupModal: () => void;
   openRenameGroupModal: () => void;
   closeRenameGroupModal: () => void;
+  openCreatePlaylistModal: () => void;
+  closeCreatePlaylistModal: () => void;
+  openRenamePlaylistModal: () => void;
+  closeRenamePlaylistModal: () => void;
   openFullPlayer: () => void;
   closeFullPlayer: () => void;
 
@@ -33,6 +39,8 @@ export const useUiStore = create<UIState>((set) => ({
   showSentenceEditor: false,
   showCreateGroupModal: false,
   showRenameGroupModal: false,
+  showCreatePlaylistModal: false,
+  showRenamePlaylistModal: false,
   editingSentenceId: null,
   showFullPlayer: false,
   isSentenceSearching: false,
@@ -45,6 +53,10 @@ export const useUiStore = create<UIState>((set) => ({
   closeCreateGroupModal: () => set({ showCreateGroupModal: false }),
   openRenameGroupModal: () => set({ showRenameGroupModal: true }),
   closeRenameGroupModal: () => set({ showRenameGroupModal: false }),
+  openCreatePlaylistModal: () => set({ showCreatePlaylistModal: true }),
+  closeCreatePlaylistModal: () => set({ showCreatePlaylistModal: false }),
+  openRenamePlaylistModal: () => set({ showRenamePlaylistModal: true }),
+  closeRenamePlaylistModal: () => set({ showRenamePlaylistModal: false }),
   openFullPlayer: () => set({ showFullPlayer: true }),
   closeFullPlayer: () => set({ showFullPlayer: false }),
 

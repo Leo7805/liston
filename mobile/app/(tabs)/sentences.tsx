@@ -61,7 +61,7 @@ export default function SentencesScreen() {
         <LibrarySentences />
       </View>
 
-      {/* Editor Modal */}
+      {/* Editor Modal (Add Sentence or Update Sentence) */}
       {showSentenceEditor && <SentenceEditorModal />}
 
       {/* Move to Group Modal - SentenceSelectionHeader */}

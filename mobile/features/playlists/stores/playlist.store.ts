@@ -25,7 +25,9 @@ type PlaylistState = {
   selectPlaylist: (playlistId: string | null) => void;
 
   createPlaylist: (name: string) => void;
+  renamePlaylist: (playlistId: string, newName: string) => void;
   renameCurrentPlaylist: (newName: string) => void;
+  deletePlaylist: (playlistId: string) => void;
   deleteCurrentPlaylist: () => void;
   // addSentencesToCurrentPlaylist: (
   //   sentenceIds: string[],
@@ -113,6 +115,28 @@ export const usePlaylistStore = create<PlaylistState>()(
           }
         },
 
+        renamePlaylist: (playlistId: string, newName: string) => {
+          try {
+            const { playlists } = get();
+
+            if (!playlistId) {
+              throw new Error('No playlist selected to rename');
+            }
+
+            const updatedPlaylists = playlistService.renamePlaylist(
+              playlistId,
+              newName,
+              playlists
+            );
+
+            set({
+              playlists: updatedPlaylists,
+            });
+          } catch (error) {
+            handleError(error);
+          }
+        },
+
         renameCurrentPlaylist: (newName: string) => {
           try {
             const { playlists, currentPlaylistId } = get();
@@ -129,6 +153,27 @@ export const usePlaylistStore = create<PlaylistState>()(
 
             set({
               playlists: updatedPlaylists,
+            });
+          } catch (error) {
+            handleError(error);
+          }
+        },
+
+        deletePlaylist: (playlistId: string) => {
+          try {
+            const { playlists } = get();
+
+            const updatedPlaylists = playlistService.deletePlaylist(
+              playlistId,
+              playlists
+            );
+
+            set({
+              playlists: updatedPlaylists,
+              currentPlaylistId:
+                get().currentPlaylistId === playlistId
+                  ? updatedPlaylists[0]?.id || defaultPlaylist.id
+                  : get().currentPlaylistId, // If the deleted playlist is currently selected, switch to the first available playlist or default if none left
             });
           } catch (error) {
             handleError(error);

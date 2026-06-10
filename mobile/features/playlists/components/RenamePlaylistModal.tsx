@@ -3,38 +3,41 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppModal } from '@/global/components/AppModal';
 import { useUiStore } from '@/global/stores/ui.store';
 import { useRef, useState } from 'react';
-import { useSentenceStore } from '@/features/sentences/stores/sentence.store';
-import { DEFAULT_GROUP_ID } from '@/features/sentences/sentence.service';
+import { usePlaylistStore } from '@/features/playlists/stores/playlist.store';
+import { DEFAULT_PLAYLIST_ID } from '../playlist.service';
 
-export function RenameGroupModal() {
+export function RenamePlaylistModal() {
   const inputRef = useRef<TextInput>(null); // Ref to the TextInput for focusing
-  const currentGroupId = useSentenceStore((s) => s.currentGroupId);
-  const groups = useSentenceStore((s) => s.groups);
+  const currentPlaylistId = usePlaylistStore((s) => s.currentPlaylistId);
+  const playlists = usePlaylistStore((s) => s.playlists);
 
-  const currentGroupName =
-    groups.find((g) => g.id === currentGroupId)?.name || '';
+  const currentPlaylistName =
+    playlists.find((p) => p.id === currentPlaylistId)?.name || '';
 
-  const [groupName, setGroupName] = useState(currentGroupName);
-  const oldGroupName = useRef(currentGroupName); // Ref to store the original group name for comparison
+  const [playlistName, setPlaylistName] = useState(currentPlaylistName);
+  const oldPlaylistName = useRef(currentPlaylistName); // Ref to store the original playlist name for comparison
 
-  const { closeRenameGroupModal } = useUiStore.getState();
-  const { renameGroup } = useSentenceStore.getState();
+  const { closeRenamePlaylistModal } = useUiStore.getState();
+  const { renamePlaylist } = usePlaylistStore.getState();
 
   function handleRename() {
-    if (currentGroupId === null || currentGroupId === DEFAULT_GROUP_ID) {
-      return; // Do not allow renaming if null group (All groups) is selected or if it's the default group
+    if (
+      currentPlaylistId === null ||
+      currentPlaylistId === DEFAULT_PLAYLIST_ID
+    ) {
+      return; // Do not allow renaming if null playlist (All playlists) is selected or if it's the default playlist
     }
-    renameGroup(currentGroupId, groupName);
-    closeRenameGroupModal();
+    renamePlaylist(currentPlaylistId, playlistName);
+    closeRenamePlaylistModal();
   }
 
   function handleCancel() {
-    closeRenameGroupModal();
+    closeRenamePlaylistModal();
   }
 
   return (
     <AppModal
-      title="Rename Group"
+      title="Rename Playlist"
       onClose={handleCancel}
       onConfirm={handleRename}
     >
@@ -46,7 +49,7 @@ export function RenameGroupModal() {
         <TextInput
           numberOfLines={1}
           editable={false}
-          value={oldGroupName.current}
+          value={oldPlaylistName.current}
           textAlignVertical="center"
           placeholderTextColor="#cbd5e1" // slate-300
           className="rounded-xl bg-slate-200 px-4 h-12 text-slate-500"
@@ -58,17 +61,18 @@ export function RenameGroupModal() {
           <TextInput
             ref={inputRef}
             numberOfLines={1}
-            value={groupName}
-            onChangeText={setGroupName}
-            placeholder="Enter group name"
+            value={playlistName}
+            onChangeText={setPlaylistName}
+            placeholder="Enter playlist name"
             placeholderTextColor="#64748b"
             textAlignVertical="center"
             className="rounded-xl bg-cyan-100 px-4 py-2 h-12 text-slate-950 w-full"
           />
-          {groupName.length > 0 && (
+          {/* Clear button */}
+          {playlistName.length > 0 && (
             <TouchableOpacity
               onPress={() => {
-                setGroupName('');
+                setPlaylistName('');
 
                 requestAnimationFrame(() => {
                   inputRef.current?.focus();

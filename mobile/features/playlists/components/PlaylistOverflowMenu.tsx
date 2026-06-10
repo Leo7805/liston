@@ -6,6 +6,7 @@ import { DEFAULT_PLAYLIST_ID } from '@/features/playlists/playlist.service';
 import { usePlaylistStore } from '@/features/playlists/stores/playlist.store';
 import { useSentenceSelectionStore } from '@/features/sentences/stores/sentenceSelection.store';
 import { usePlaylistItemSelectionStore } from '@/features/playlists/stores/playlistItemSelection.store';
+import { useUiStore } from '@/global/stores/ui.store';
 
 /** Used to define menu items with a key and text */
 type KeyAndText = {
@@ -22,6 +23,10 @@ const menuKeyAndText: KeyAndText[] = [
 ];
 
 export function PlaylistOverflowMenu() {
+  const { openCreatePlaylistModal, openRenamePlaylistModal } =
+    useUiStore.getState();
+  const { deletePlaylist } = usePlaylistStore.getState();
+
   const currentPlaylistId = usePlaylistStore((s) => s.currentPlaylistId); // Current playlist ID
 
   const totalSentencesInAllPlaylists = usePlaylistStore((s) =>
@@ -90,11 +95,10 @@ export function PlaylistOverflowMenu() {
       disabled: isItemEmpty,
     },
 
-    // option 2: Create Playlist
+    // Option 2: Create Playlist
     {
       key: menuKeyAndText[2].key,
-      // onSelect: handleRemoveSentences,
-      onSelect: () => {},
+      onSelect: openCreatePlaylistModal,
       content: (
         <View className="flex-row items-center px-3 py-2">
           <Ionicons
@@ -111,8 +115,7 @@ export function PlaylistOverflowMenu() {
     // Option 3: Rename Playlist
     {
       key: menuKeyAndText[3].key,
-      // onSelect: handleDeletePlaylist,
-      onSelect: () => {},
+      onSelect: openRenamePlaylistModal,
       content: (
         <View className="flex-row items-center px-3 py-2">
           <Ionicons
@@ -133,10 +136,10 @@ export function PlaylistOverflowMenu() {
       disabled: disableRenamePlaylist,
     },
 
-    // Option 4: Delete Playlist
+    // Option 4: Delete Current Playlist
     {
       key: menuKeyAndText[4].key,
-      onSelect: () => {},
+      onSelect: handleDeletePlaylist,
       content: (
         <View className="flex-row items-center px-3 py-2">
           <Ionicons
@@ -157,6 +160,17 @@ export function PlaylistOverflowMenu() {
       disabled: disableDeletePlaylist, // Disable if null group (All groups) or default group is selected
     },
   ];
+
+  function handleDeletePlaylist() {
+    if (
+      currentPlaylistId === null ||
+      currentPlaylistId === DEFAULT_PLAYLIST_ID
+    ) {
+      return; // Do not allow deleting if no playlist is selected (null means "All sentences") or if it's the default playlist
+    }
+
+    deletePlaylist(currentPlaylistId);
+  }
 
   return <OverflowMenu items={menuItems} separatorIndexes={[1]} />;
 }
