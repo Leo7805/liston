@@ -153,6 +153,15 @@ export async function runPlaybackSession({
   return AudioPlaybackResult.Ended;
 }
 
+/**
+ * Creates a playback queue starting from a specific sentence ID, optionally looping back to the start of the queue.
+ * @param queue
+ * @param startSentenceId
+ * @param loopPlayback
+ * @returns A reordered queue starting from the specified sentence ID, with optional looping.
+ * If the startSentenceId is not found, the original queue is returned.
+ * If loopPlayback is true, the queue will continue from the start after reaching the end.
+ */
 function createQueueFromSentence(
   queue: SentenceItem[],
   startSentenceId?: string,

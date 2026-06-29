@@ -22,25 +22,6 @@ type PlayerState = {
   resume: () => void;
   stop: () => void;
   idle: () => void;
-
-  /** Update a single item in the currently playing sentence list */
-  // updateItemInPlayingList: (
-  //   id: string,
-  //   patch: Partial<Omit<SentenceItem, 'id' | 'createdAt'>>
-  // ) => Promise<void>;
-
-  /** Delete a sentence from the playback queue */
-  // deleteItemFromPlayingList: (id: string) => Promise<void>;
-
-  /** Add a sentence to the playback queue */
-  // addItemToPlayingList: (sentence: SentenceItem) => Promise<void>;
-
-  /**
-   * Persistent using AsyncStorage
-   * */
-  // loadLastPlayingSentence: () => Promise<void>; // Load last playing sentence from AsyncStorage
-  // saveLastPlayingSentence: (sentence: SentenceItem | null) => Promise<void>; // Save last playing sentence to AsyncStorage
-  // loadPlayingList: () => Promise<void>; // Load playing list from AsyncStorage
 };
 
 export const usePlayerStore = create<PlayerState>()(
@@ -94,65 +75,6 @@ export const usePlayerStore = create<PlayerState>()(
           isPlaying: false,
         });
       },
-
-      // updateItemInPlayingList: async (id, patch) => {
-      //   const updated = await updateSentenceInStorage(id, patch);
-      //   const current = get().playlistItemId;
-      //   const updatedPlayingItem = updated.find((item) => item.id === id);
-
-      //   set({
-      //     playingList: updated,
-      //     playlistItemId:
-      //       current === id && updatedPlayingItem ? updatedPlayingItem.id : current,
-      //   });
-      // },
-
-      // addItemToPlayingList: async (sentence) => {
-      //   const updated = await addSentenceToStorage(sentence);
-
-      //   set({ playingList: updated });
-      // },
-
-      // deleteItemFromPlayingList: async (id) => {
-      //   const updated = await deleteSentenceFromStorage(id);
-
-      //   set({ playingList: updated });
-      // },
-
-      // loadLastPlayingSentence: async () => {
-      //   const lastPlayingSentence = await getLastPlayingSentenceFromStorage();
-
-      //   if (lastPlayingSentence) {
-      //     set({
-      //       playingItem: lastPlayingSentence,
-      //       playbackState: PlaybackState.Idle,
-      //     });
-      //   }
-      // },
-
-      // saveLastPlayingSentence: async (sentence) => {
-      //   if (sentence) {
-      //     await saveLastPlayingSentenceToStorage(sentence);
-      //   }
-      // },
-
-      // loadPlayingList: async () => {
-      //   const initialized = await isSentencesInitialized();
-
-      //   if (!initialized) {
-      //     await saveSentencesToStorage(mockSentences);
-
-      //     set({ playingList: mockSentences });
-
-      //     await markSentencesAsInitialized();
-
-      //     return;
-      //   }
-
-      //   const playingList = await getSentencesFromStorage();
-
-      //   set({ playingList });
-      // },
     }),
     {
       name: 'liston:player-store', // name of the item in storage
